@@ -55,6 +55,7 @@ export default function Chat() {
   const [isTyping, setIsTyping] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Mock contacts data
@@ -251,16 +252,16 @@ export default function Chat() {
         animate={{ opacity: 1, y: 0 }}
         className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}
       >
-        <div className={`flex items-end gap-2 max-w-[80%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className={`flex items-end gap-2 max-w-[85%] sm:max-w-[80%] md:max-w-[75%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
           {!isOwnMessage && (
-            <Avatar className="w-8 h-8">
+            <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
               <AvatarFallback className={isAI ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-blue-500"}>
                 {isAI ? <Bot className="w-4 h-4" /> : selectedContact?.name[0]}
               </AvatarFallback>
             </Avatar>
           )}
           
-          <div className={`${isOwnMessage ? 'bg-blue-600' : isAI ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'glass-effect'} rounded-lg p-3 shadow-sm`}>
+          <div className={`${isOwnMessage ? 'bg-blue-600' : isAI ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'glass-effect'} rounded-lg p-2 sm:p-3 shadow-sm`}>
             {message.type === 'payment' && message.paymentData ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -286,10 +287,10 @@ export default function Chat() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm whitespace-pre-line">{message.text}</p>
+              <p className="text-xs sm:text-sm whitespace-pre-line break-words">{message.text}</p>
             )}
             
-            <div className="text-xs text-muted-foreground mt-1">
+            <div className="text-xs text-muted-foreground mt-1 opacity-75">
               {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
@@ -299,7 +300,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-screen w-full dark flex">
+    <div className="h-screen w-full dark flex relative overflow-hidden">
       <Head>
         <title>Chat - TrustBridge</title>
         <meta name="description" content="WhatsApp-style messaging for crypto payments" />
@@ -309,14 +310,33 @@ export default function Chat() {
       <div className="fixed inset-0 cyber-grid opacity-10" />
       <div className="fixed inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-cyan-500/5" />
 
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Contacts Sidebar */}
-      <div className="w-80 glass-effect border-r border-border/50 flex flex-col">
+      <div className={`w-80 md:w-72 glass-effect border-r border-border/50 flex flex-col fixed lg:relative z-50 h-full transition-transform duration-300 ${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
         <div className="p-4 border-b border-border/50">
           <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
               size="sm"
               onClick={() => router.push('/dashboard')}
+              className="hidden lg:flex"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="lg:hidden"
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
@@ -329,7 +349,10 @@ export default function Chat() {
             {contacts.map((contact) => (
               <div
                 key={contact.id}
-                onClick={() => setSelectedContact(contact)}
+                onClick={() => {
+                  setSelectedContact(contact);
+                  setIsMobileMenuOpen(false);
+                }}
                 className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:glow-effect ${
                   selectedContact?.id === contact.id ? 'bg-blue-500/20' : ''
                 }`}
@@ -360,32 +383,40 @@ export default function Chat() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {selectedContact ? (
           <>
             {/* Chat Header */}
-            <div className="glass-effect border-b border-border/50 p-4">
+            <div className="glass-effect border-b border-border/50 p-3 md:p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className="lg:hidden flex-shrink-0"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </Button>
+                  <Avatar className="w-8 h-8 md:w-10 md:h-10 flex-shrink-0">
                     <AvatarFallback className={selectedContact.id === 'ai_assistant' ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-blue-500"}>
                       {selectedContact.id === 'ai_assistant' ? <Bot className="w-5 h-5" /> : selectedContact.name[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h3 className="font-semibold">{selectedContact.name}</h3>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-sm md:text-base truncate">{selectedContact.name}</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground truncate">
                       {selectedContact.isOnline ? 'Online' : 
                         selectedContact.lastSeen ? `Last seen ${selectedContact.lastSeen.toLocaleTimeString()}` : 'Offline'
                       }
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm">
+                <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+                  <Button variant="ghost" size="sm" className="hidden sm:flex">
                     <Phone className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="hidden sm:flex">
                     <Video className="w-4 h-4" />
                   </Button>
                   <Button variant="ghost" size="sm">
@@ -396,7 +427,7 @@ export default function Chat() {
             </div>
 
             {/* Messages Area */}
-            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+            <ScrollArea className="flex-1 p-2 md:p-4" ref={scrollAreaRef}>
               <div className="space-y-2">
                 <AnimatePresence>
                   {messages.map((message) => renderMessage(message))}
@@ -421,49 +452,57 @@ export default function Chat() {
             </ScrollArea>
 
             {/* Message Input */}
-            <div className="glass-effect border-t border-border/50 p-4">
+            <div className="glass-effect border-t border-border/50 p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="hidden sm:flex flex-shrink-0">
                   <Paperclip className="w-4 h-4" />
                 </Button>
                 <div className="flex-1 relative">
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message... (Try: /pay 50 ADA)"
-                    className="glass-effect border-blue-500/20 focus:border-blue-500/50 pr-20"
+                    placeholder={typeof window !== 'undefined' && window.innerWidth < 640 ? "Type a message..." : "Type a message... (Try: /pay 50 ADA)"}
+                    className="glass-effect border-blue-500/20 focus:border-blue-500/50 pr-16 sm:pr-20 text-sm"
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   />
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="hidden sm:flex">
                       <Smile className="w-4 h-4" />
                     </Button>
                     <Button variant="ghost" size="sm">
-                      <Mic className="w-4 h-4" />
+                      <Mic className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
                 </div>
                 <Button 
                   onClick={handleSendMessage}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect flex-shrink-0"
                   disabled={!newMessage.trim()}
+                  size="sm"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </div>
               
               {selectedContact.id === 'ai_assistant' && (
-                <div className="mt-2 text-xs text-muted-foreground">
-                  💡 Ask me about payments, wallet setup, fees, security, or any TrustBridge questions!
+                <div className="mt-2 text-xs text-muted-foreground px-1">
+                  <span className="hidden sm:inline">💡 Ask me about payments, wallet setup, fees, security, or any TrustBridge questions!</span>
+                  <span className="sm:hidden">💡 Ask me anything about TrustBridge!</span>
                 </div>
               )}
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h3 className="text-xl font-semibold mb-2 text-glow">Welcome to TrustBridge Chat</h3>
-              <p className="text-muted-foreground">Select a contact to start messaging and sending payments</p>
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="text-center max-w-md">
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-glow">Welcome to TrustBridge Chat</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">Select a contact to start messaging and sending payments</p>
+              <Button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+              >
+                View Contacts
+              </Button>
             </div>
           </div>
         )}

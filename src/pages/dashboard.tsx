@@ -110,53 +110,56 @@ export default function Dashboard() {
         
         {/* Header */}
         <header className="relative z-10 glass-effect border-b border-border/50">
-          <div className="container mx-auto px-6 py-4">
+          <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-glow">TrustBridge</h1>
-                  <p className="text-sm text-muted-foreground">Dashboard</p>
+                  <h1 className="text-lg md:text-2xl font-bold text-glow">TrustBridge</h1>
+                  <p className="text-xs md:text-sm text-muted-foreground">Dashboard</p>
                 </div>
               </div>
               
-              <div className="hidden md:flex items-center gap-4">
+              <div className="hidden lg:flex items-center gap-2 md:gap-4">
                 <Button 
                   variant="ghost" 
                   onClick={() => router.push('/chat')}
-                  className="hover:glow-effect"
+                  className="hover:glow-effect text-sm"
+                  size="sm"
                 >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Chat
+                  <MessageCircle className="w-4 h-4 mr-1 md:mr-2" />
+                  <span className="hidden md:inline">Chat</span>
                 </Button>
                 <Button 
                   variant="ghost" 
                   onClick={() => setShowQR(!showQR)}
-                  className="hover:glow-effect"
+                  className="hover:glow-effect text-sm"
+                  size="sm"
                 >
-                  <QrCode className="w-4 h-4 mr-2" />
-                  QR Code
+                  <QrCode className="w-4 h-4 mr-1 md:mr-2" />
+                  <span className="hidden md:inline">QR</span>
                 </Button>
                 <Button 
                   variant="ghost"
-                  className="hover:glow-effect"
+                  className="hover:glow-effect text-sm"
+                  size="sm"
                 >
-                  <Users className="w-4 h-4 mr-2" />
-                  Contacts
+                  <Users className="w-4 h-4 mr-1 md:mr-2" />
+                  <span className="hidden md:inline">Contacts</span>
                 </Button>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 <Button variant="ghost" size="sm" className="relative hover:glow-effect">
                   <Bell className="w-4 h-4" />
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
                 </Button>
                 
-                <Badge variant="outline" className="border-green-500/20 text-green-400 bg-green-500/10">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2" />
-                  Connected
+                <Badge variant="outline" className="border-green-500/20 text-green-400 bg-green-500/10 hidden sm:flex">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-1 md:mr-2" />
+                  <span className="text-xs md:text-sm">Connected</span>
                 </Badge>
                 
                 <DropdownMenu>
@@ -185,7 +188,7 @@ export default function Dashboard() {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <Button variant="ghost" size="sm" className="md:hidden">
+                <Button variant="ghost" size="sm" className="lg:hidden">
                   <Menu className="w-4 h-4" />
                 </Button>
               </div>
@@ -204,13 +207,13 @@ export default function Dashboard() {
             <motion.div 
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              className="glass-effect rounded-xl p-6 max-w-sm w-full"
+              className="glass-effect rounded-xl p-4 md:p-6 max-w-sm w-full mx-4"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-center">
                 <h3 className="text-lg font-semibold mb-4 text-glow">Your Wallet Address</h3>
-                <div className="bg-white p-4 rounded-lg mb-4">
-                  <QRCode value={currentWalletAddress} size={200} />
+                <div className="bg-white p-3 md:p-4 rounded-lg mb-4 flex justify-center">
+                  <QRCode value={currentWalletAddress} size={window.innerWidth < 640 ? 150 : 200} />
                 </div>
                 <p className="text-sm text-muted-foreground mb-4 break-all">
                   {currentWalletAddress}
@@ -226,78 +229,79 @@ export default function Dashboard() {
           </motion.div>
         )}
 
-        <div className={`relative z-10 container mx-auto px-6 py-8 transition-all duration-1000 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+        <div className={`relative z-10 container mx-auto px-4 md:px-6 py-4 md:py-8 transition-all duration-1000 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
           {/* AI Assistant FAB */}
           <motion.div 
-            className="fixed bottom-6 right-6 z-40"
+            className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-40"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <Button 
               onClick={() => router.push('/chat?contact=ai_assistant')}
-              className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 glow-effect shadow-lg group"
+              className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 glow-effect shadow-lg group"
             >
-              <Bot className="w-6 h-6 group-hover:animate-glow" />
+              <Bot className="w-5 h-5 md:w-6 md:h-6 group-hover:animate-glow" />
             </Button>
           </motion.div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
             <motion.div whileHover={{ scale: 1.02 }}>
               <Button 
                 onClick={() => router.push('/chat')}
-                className="w-full h-20 glass-effect hover:glow-effect flex flex-col gap-2 transition-all duration-300"
+                className="w-full h-16 md:h-20 glass-effect hover:glow-effect flex flex-col gap-1 md:gap-2 transition-all duration-300 p-2 md:p-4"
                 variant="ghost"
               >
-                <MessageCircle className="w-6 h-6 text-blue-400" />
-                <span className="text-sm">Chat & Pay</span>
+                <MessageCircle className="w-4 h-4 md:w-6 md:h-6 text-blue-400" />
+                <span className="text-xs md:text-sm">Chat & Pay</span>
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.02 }}>
               <Button 
                 onClick={() => setShowQR(true)}
-                className="w-full h-20 glass-effect hover:glow-effect flex flex-col gap-2 transition-all duration-300"
+                className="w-full h-16 md:h-20 glass-effect hover:glow-effect flex flex-col gap-1 md:gap-2 transition-all duration-300 p-2 md:p-4"
                 variant="ghost"
               >
-                <QrCode className="w-6 h-6 text-purple-400" />
-                <span className="text-sm">QR Code</span>
+                <QrCode className="w-4 h-4 md:w-6 md:h-6 text-purple-400" />
+                <span className="text-xs md:text-sm">QR Code</span>
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.02 }}>
               <Button 
-                className="w-full h-20 glass-effect hover:glow-effect flex flex-col gap-2 transition-all duration-300"
+                className="w-full h-16 md:h-20 glass-effect hover:glow-effect flex flex-col gap-1 md:gap-2 transition-all duration-300 p-2 md:p-4"
                 variant="ghost"
               >
-                <Users className="w-6 h-6 text-green-400" />
-                <span className="text-sm">Contacts</span>
+                <Users className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
+                <span className="text-xs md:text-sm">Contacts</span>
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.02 }}>
               <Button 
-                className="w-full h-20 glass-effect hover:glow-effect flex flex-col gap-2 transition-all duration-300"
+                className="w-full h-16 md:h-20 glass-effect hover:glow-effect flex flex-col gap-1 md:gap-2 transition-all duration-300 p-2 md:p-4"
                 variant="ghost"
               >
-                <Zap className="w-6 h-6 text-yellow-400" />
-                <span className="text-sm">Quick Send</span>
+                <Zap className="w-4 h-4 md:w-6 md:h-6 text-yellow-400" />
+                <span className="text-xs md:text-sm">Quick Send</span>
               </Button>
             </motion.div>
           </div>
 
           {/* Enhanced Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
             <motion.div whileHover={{ scale: 1.02 }}>
               <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                     Total Balance
                   </CardTitle>
-                  <Wallet className="h-4 w-4 text-blue-400 group-hover:animate-glow" />
+                  <Wallet className="h-3 w-3 md:h-4 md:w-4 text-blue-400 group-hover:animate-glow" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-glow">$2,847.50</div>
+                <CardContent className="p-3 md:p-6 pt-0">
+                  <div className="text-lg md:text-2xl font-bold text-glow">$2,847.50</div>
                   <div className="flex items-center text-xs text-green-400 mt-1">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    +5.2% from last month
+                    <TrendingUp className="w-2 h-2 md:w-3 md:h-3 mr-1" />
+                    <span className="hidden sm:inline">+5.2% from last month</span>
+                    <span className="sm:hidden">+5.2%</span>
                   </div>
                 </CardContent>
               </Card>
@@ -305,16 +309,17 @@ export default function Dashboard() {
 
             <motion.div whileHover={{ scale: 1.02 }}>
               <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                     Monthly Volume
                   </CardTitle>
-                  <Send className="h-4 w-4 text-purple-400 group-hover:animate-glow" />
+                  <Send className="h-3 w-3 md:h-4 md:w-4 text-purple-400 group-hover:animate-glow" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-glow">$6,190</div>
+                <CardContent className="p-3 md:p-6 pt-0">
+                  <div className="text-lg md:text-2xl font-bold text-glow">$6,190</div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    28 transactions
+                    <span className="hidden sm:inline">28 transactions</span>
+                    <span className="sm:hidden">28 tx</span>
                   </div>
                 </CardContent>
               </Card>
@@ -322,16 +327,17 @@ export default function Dashboard() {
 
             <motion.div whileHover={{ scale: 1.02 }}>
               <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                     Global Reach
                   </CardTitle>
-                  <Globe className="h-4 w-4 text-cyan-400 group-hover:animate-glow" />
+                  <Globe className="h-3 w-3 md:h-4 md:w-4 text-cyan-400 group-hover:animate-glow" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-glow">12</div>
+                <CardContent className="p-3 md:p-6 pt-0">
+                  <div className="text-lg md:text-2xl font-bold text-glow">12</div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Countries reached
+                    <span className="hidden sm:inline">Countries reached</span>
+                    <span className="sm:hidden">Countries</span>
                   </div>
                 </CardContent>
               </Card>
@@ -339,16 +345,17 @@ export default function Dashboard() {
 
             <motion.div whileHover={{ scale: 1.02 }}>
               <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                     Active Contacts
                   </CardTitle>
-                  <MessageCircle className="h-4 w-4 text-green-400 group-hover:animate-glow" />
+                  <MessageCircle className="h-3 w-3 md:h-4 md:w-4 text-green-400 group-hover:animate-glow" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-glow">47</div>
+                <CardContent className="p-3 md:p-6 pt-0">
+                  <div className="text-lg md:text-2xl font-bold text-glow">47</div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    WhatsApp verified
+                    <span className="hidden sm:inline">WhatsApp verified</span>
+                    <span className="sm:hidden">Verified</span>
                   </div>
                 </CardContent>
               </Card>
@@ -356,22 +363,22 @@ export default function Dashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             {/* Send Money Form */}
             <div className="lg:col-span-1">
               <Card className="glass-effect hover:glow-effect transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-glow">
-                    <Send className="w-5 h-5" />
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="flex items-center gap-2 text-glow text-lg md:text-xl">
+                    <Send className="w-4 h-4 md:w-5 md:h-5" />
                     Send Money
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-sm">
                     Send money instantly via WhatsApp
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="walletId">Recipient Wallet ID</Label>
+                <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6 pt-0">
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="walletId" className="text-sm">Recipient Wallet ID</Label>
                     <div className="relative">
                       <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                       <Input
@@ -385,8 +392,8 @@ export default function Dashboard() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Amount</Label>
+                    <div className="space-y-1 md:space-y-2">
+                      <Label htmlFor="amount" className="text-sm">Amount</Label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                         <Input
@@ -399,8 +406,8 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="currency">Currency</Label>
+                    <div className="space-y-1 md:space-y-2">
+                      <Label htmlFor="currency" className="text-sm">Currency</Label>
                       <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
                         <SelectTrigger className="glass-effect border-blue-500/20 hover:glow-effect">
                           <SelectValue />
@@ -415,12 +422,12 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                    <div className="flex items-center justify-between text-sm">
+                  <div className="p-2 md:p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                    <div className="flex items-center justify-between text-xs md:text-sm">
                       <span className="text-muted-foreground">Exchange Rate:</span>
                       <span className="font-medium">1 USD = 2.85 ADA</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs md:text-sm">
                       <span className="text-muted-foreground">Network Fee:</span>
                       <span className="font-medium text-green-400">~0.5 ADA</span>
                     </div>
@@ -431,8 +438,8 @@ export default function Dashboard() {
                     className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect group transition-all duration-300"
                     disabled={!sendAmount || !recipientWalletId}
                   >
-                    <MessageCircle className="w-4 h-4 mr-2 group-hover:animate-glow" />
-                    Send via WhatsApp
+                    <MessageCircle className="w-4 h-4 mr-1 md:mr-2 group-hover:animate-glow" />
+                    <span className="text-sm md:text-base">Send via WhatsApp</span>
                   </Button>
                 </CardContent>
               </Card>
@@ -455,62 +462,62 @@ export default function Dashboard() {
 
                 <TabsContent value="recent">
                   <Card className="glass-effect">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-glow">
-                        <History className="w-5 h-5" />
+                    <CardHeader className="p-4 md:p-6">
+                      <CardTitle className="flex items-center gap-2 text-glow text-lg md:text-xl">
+                        <History className="w-4 h-4 md:w-5 md:h-5" />
                         Recent Transactions
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
+                    <CardContent className="p-4 md:p-6 pt-0">
+                      <div className="space-y-3 md:space-y-4">
                         {mockTransactions.map((tx, index) => (
                           <div 
                             key={tx.id} 
-                            className={`flex items-center justify-between p-4 rounded-lg glass-effect hover:glow-effect transition-all duration-300 group cursor-pointer ${
+                            className={`flex items-center justify-between p-3 md:p-4 rounded-lg glass-effect hover:glow-effect transition-all duration-300 group cursor-pointer ${
                               isVisible ? 'animate-fade-in' : 'opacity-0'
                             }`}
                             style={{ animationDelay: `${index * 100}ms` }}
                           >
-                            <div className="flex items-center gap-4">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+                              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
                                 tx.type === 'sent' 
                                   ? 'bg-red-500/20 text-red-400' 
                                   : 'bg-green-500/20 text-green-400'
                               } group-hover:animate-glow`}>
                                 {tx.type === 'sent' ? (
-                                  <ArrowUpRight className="w-5 h-5" />
+                                  <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5" />
                                 ) : (
-                                  <ArrowDownRight className="w-5 h-5" />
+                                  <ArrowDownRight className="w-4 h-4 md:w-5 md:h-5" />
                                 )}
                               </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium group-hover:text-primary transition-colors">
-                                    {tx.type === 'sent' ? `To ${tx.to}` : `From ${tx.from}`}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1 md:gap-2">
+                                  <span className="font-medium group-hover:text-primary transition-colors text-sm md:text-base truncate">
+                                    {tx.type === 'sent' ? `To ${tx.to?.substring(0, 8)}...` : `From ${tx.from?.substring(0, 8)}...`}
                                   </span>
                                   {tx.whatsapp && (
-                                    <MessageCircle className="w-4 h-4 text-green-400" />
+                                    <MessageCircle className="w-3 h-3 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
                                   )}
                                 </div>
-                                <div className="text-sm text-muted-foreground">
+                                <div className="text-xs md:text-sm text-muted-foreground">
                                   {tx.time}
                                 </div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className="font-bold group-hover:text-primary transition-colors">
+                            <div className="text-right flex-shrink-0">
+                              <div className="font-bold group-hover:text-primary transition-colors text-sm md:text-base">
                                 {tx.type === 'sent' ? '-' : '+'}${tx.amount} {tx.currency}
                               </div>
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1 justify-end">
                                 {tx.status === 'completed' ? (
                                   <>
-                                    <CheckCircle className="w-4 h-4 text-green-400" />
-                                    <span className="text-sm text-green-400">Completed</span>
+                                    <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
+                                    <span className="text-xs md:text-sm text-green-400 hidden sm:inline">Completed</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Clock className="w-4 h-4 text-yellow-400" />
-                                    <span className="text-sm text-yellow-400">Pending</span>
+                                    <Clock className="w-3 h-3 md:w-4 md:h-4 text-yellow-400" />
+                                    <span className="text-xs md:text-sm text-yellow-400 hidden sm:inline">Pending</span>
                                   </>
                                 )}
                               </div>
@@ -565,7 +572,7 @@ export default function Dashboard() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-80">
+                        <div className="h-64 md:h-80">
                           <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -595,7 +602,7 @@ export default function Dashboard() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-80">
+                        <div className="h-64 md:h-80">
                           <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                               <Pie
@@ -627,7 +634,7 @@ export default function Dashboard() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-80">
+                        <div className="h-64 md:h-80">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={countryData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -653,22 +660,22 @@ export default function Dashboard() {
                         <CardTitle className="text-glow">Quick Statistics</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                          <div className="text-center p-4 glass-effect rounded-lg">
-                            <div className="text-2xl font-bold text-blue-400">$6,190</div>
-                            <div className="text-sm text-muted-foreground">Total Volume</div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+                          <div className="text-center p-3 md:p-4 glass-effect rounded-lg">
+                            <div className="text-lg md:text-2xl font-bold text-blue-400">$6,190</div>
+                            <div className="text-xs md:text-sm text-muted-foreground">Total Volume</div>
                           </div>
-                          <div className="text-center p-4 glass-effect rounded-lg">
-                            <div className="text-2xl font-bold text-green-400">28</div>
-                            <div className="text-sm text-muted-foreground">Transactions</div>
+                          <div className="text-center p-3 md:p-4 glass-effect rounded-lg">
+                            <div className="text-lg md:text-2xl font-bold text-green-400">28</div>
+                            <div className="text-xs md:text-sm text-muted-foreground">Transactions</div>
                           </div>
-                          <div className="text-center p-4 glass-effect rounded-lg">
-                            <div className="text-2xl font-bold text-purple-400">$221</div>
-                            <div className="text-sm text-muted-foreground">Avg. Transaction</div>
+                          <div className="text-center p-3 md:p-4 glass-effect rounded-lg">
+                            <div className="text-lg md:text-2xl font-bold text-purple-400">$221</div>
+                            <div className="text-xs md:text-sm text-muted-foreground">Avg. Transaction</div>
                           </div>
-                          <div className="text-center p-4 glass-effect rounded-lg">
-                            <div className="text-2xl font-bold text-cyan-400">5</div>
-                            <div className="text-sm text-muted-foreground">Countries</div>
+                          <div className="text-center p-3 md:p-4 glass-effect rounded-lg">
+                            <div className="text-lg md:text-2xl font-bold text-cyan-400">5</div>
+                            <div className="text-xs md:text-sm text-muted-foreground">Countries</div>
                           </div>
                         </div>
                       </CardContent>

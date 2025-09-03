@@ -32,12 +32,12 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-cyan-500/10" />
         
         {/* Navigation */}
-        <nav className="relative z-10 flex items-center justify-between p-6 glass-effect">
+        <nav className="relative z-10 flex items-center justify-between p-4 md:p-6 glass-effect">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-3 h-3 md:w-5 md:h-5 text-white" />
             </div>
-            <span className="text-2xl font-bold text-glow">TrustBridge</span>
+            <span className="text-lg md:text-2xl font-bold text-glow">TrustBridge</span>
           </div>
           <div className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">Features</a>
@@ -51,43 +51,54 @@ export default function Home() {
               Get Started
             </Button>
           </div>
+          <div className="md:hidden">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="hover:glow-effect transition-all duration-300"
+              onClick={() => router.push('/dashboard')}
+            >
+              Start
+            </Button>
+          </div>
         </nav>
 
         {/* Hero Content */}
-        <div className={`relative z-10 container mx-auto px-6 py-20 text-center transition-all duration-1000 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+        <div className={`relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-20 text-center transition-all duration-1000 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
           <div className="mb-8">
             <Badge className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 animate-glow">
               Powered by Cardano Blockchain
             </Badge>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-glow">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-glow">
               Send Money Via
-              <br />
+              <br className="hidden sm:block" />
+              <span className="sm:hidden"> </span>
               <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent">
                 WhatsApp
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto px-2">
               Revolutionary cross-border payments using WhatsApp messages and Cardano blockchain. 
               Send money to anyone, anywhere, instantly and securely.
             </p>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-12">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect text-lg px-8 py-3 group transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect text-sm sm:text-lg px-6 sm:px-8 py-3 group transition-all duration-300 w-full sm:w-auto"
               onClick={() => router.push('/dashboard')}
             >
               Get Started
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 
               variant="outline" 
               size="lg" 
-              className="text-lg px-8 py-3 hover:glow-effect transition-all duration-300"
+              className="text-sm sm:text-lg px-6 sm:px-8 py-3 hover:glow-effect transition-all duration-300 w-full sm:w-auto"
               onClick={() => setShowDemoModal(true)}
             >
-              <Play className="mr-2 h-5 w-5" />
+              <Play className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
               Watch Demo
             </Button>
           </div>
@@ -98,17 +109,17 @@ export default function Home() {
         </div>
 
         {/* Features Section */}
-        <section id="features" className="relative z-10 container mx-auto px-6 py-20">
+        <section id="features" className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-20">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-glow">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-glow">
               Why Choose TrustBridge?
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
               Experience the future of cross-border payments with cutting-edge technology
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {[
               {
                 icon: MessageCircle,
@@ -154,16 +165,16 @@ export default function Home() {
                 }`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <CardHeader className="text-center">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center group-hover:animate-glow`}>
-                    <feature.icon className="w-8 h-8 text-white" />
+                <CardHeader className="text-center p-4 md:p-6">
+                  <div className={`w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center group-hover:animate-glow`}>
+                    <feature.icon className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
-                  <CardTitle className="text-xl font-semibold group-hover:text-primary transition-colors">
+                  <CardTitle className="text-lg md:text-xl font-semibold group-hover:text-primary transition-colors">
                     {feature.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-center">
+                <CardContent className="p-4 md:p-6 pt-0">
+                  <CardDescription className="text-center text-sm md:text-base">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -173,17 +184,17 @@ export default function Home() {
         </section>
 
         {/* How it Works */}
-        <section id="how-it-works" className="relative z-10 container mx-auto px-6 py-20">
+        <section id="how-it-works" className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-20">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-glow">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-glow">
               How It Works
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
               Three simple steps to send money anywhere in the world
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
             {[
               {
                 step: "01",
@@ -209,18 +220,18 @@ export default function Home() {
                 style={{ animationDelay: `${index * 200}ms` }}
               >
                 <div className="relative mb-6">
-                  <div className="w-20 h-20 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-2xl font-bold text-white group-hover:animate-glow transition-all duration-300">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold text-white group-hover:animate-glow transition-all duration-300">
                     {step.step}
                   </div>
                   {index < 2 && (
-                    <div className="hidden md:block absolute top-10 left-1/2 w-full h-0.5 bg-gradient-to-r from-blue-500 to-purple-600 animate-shimmer" 
+                    <div className="hidden md:block absolute top-8 sm:top-10 left-1/2 w-full h-0.5 bg-gradient-to-r from-blue-500 to-purple-600 animate-shimmer" 
                          style={{ transform: 'translateX(50%)' }} />
                   )}
                 </div>
-                <h3 className="text-2xl font-semibold mb-4 group-hover:text-primary transition-colors">
+                <h3 className="text-xl sm:text-2xl font-semibold mb-4 group-hover:text-primary transition-colors">
                   {step.title}
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-sm sm:text-base text-muted-foreground">
                   {step.description}
                 </p>
               </div>
@@ -229,21 +240,21 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="relative z-10 container mx-auto px-6 py-20 text-center">
-          <div className="glass-effect rounded-2xl p-12 hover:glow-effect transition-all duration-300">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-glow">
+        <section className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-20 text-center">
+          <div className="glass-effect rounded-2xl p-6 sm:p-8 md:p-12 hover:glow-effect transition-all duration-300">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-glow">
               Ready to Transform Your Payments?
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto px-2">
               Join thousands of users already sending money seamlessly across borders
             </p>
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect text-lg px-12 py-4 group transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect text-sm sm:text-lg px-8 sm:px-12 py-3 sm:py-4 group transition-all duration-300"
               onClick={() => router.push('/dashboard')}
             >
               Get Started Now
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
         </section>
@@ -263,7 +274,7 @@ export default function Home() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
                 transition={{ type: "spring", duration: 0.5 }}
-                className="glass-effect rounded-2xl p-8 max-w-lg w-full relative"
+                className="glass-effect rounded-2xl p-6 md:p-8 max-w-lg w-full relative mx-4"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Close Button */}
@@ -286,11 +297,11 @@ export default function Home() {
                     <Clock className="w-10 h-10 text-white" />
                   </motion.div>
 
-                  <h3 className="text-3xl font-bold mb-4 text-glow">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-4 text-glow">
                     Demo Coming Soon!
                   </h3>
                   
-                  <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                  <p className="text-base md:text-lg text-muted-foreground mb-6 leading-relaxed">
                     We&apos;re putting the finishing touches on an amazing interactive demo that will showcase:
                   </p>
 
@@ -343,9 +354,9 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      <footer className="relative z-10 border-t border-border/50 py-12">
-        <div className="container mx-auto px-6 text-center text-muted-foreground">
-          <p>&copy; 2024 TrustBridge. Powered by Cardano Blockchain.</p>
+      <footer className="relative z-10 border-t border-border/50 py-8 md:py-12">
+        <div className="container mx-auto px-4 md:px-6 text-center text-muted-foreground">
+          <p className="text-sm md:text-base">&copy; 2024 TrustBridge. Powered by Cardano Blockchain.</p>
         </div>
       </footer>
     </div>
