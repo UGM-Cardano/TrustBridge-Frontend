@@ -172,14 +172,14 @@ export default function Dashboard() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="glass-effect">
-                    <DropdownMenuItem onClick={() => router.push('/profile')}>
+                    {/* <DropdownMenuItem onClick={() => router.push('/profile')}>
                       <Settings className="w-4 h-4 mr-2" />
                       Settings
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => router.push('/security')}>
                       <Shield className="w-4 h-4 mr-2" />
                       Security
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem onClick={() => router.push('/')}>
                       <ArrowUpRight className="w-4 h-4 mr-2" />
                       Sign Out
