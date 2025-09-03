@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full dark">
       <Head>
-        <title>CardanoPay - Cross-Border Payments via WhatsApp</title>
+        <title>TrustBridge - Cross-Border Payments via WhatsApp</title>
         <meta name="description" content="Send money across borders instantly using WhatsApp and Cardano blockchain" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -37,7 +37,7 @@ export default function Home() {
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-2xl font-bold text-glow">CardanoPay</span>
+            <span className="text-2xl font-bold text-glow">TrustBridge</span>
           </div>
           <div className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">Features</a>
@@ -101,7 +101,7 @@ export default function Home() {
         <section id="features" className="relative z-10 container mx-auto px-6 py-20">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-glow">
-              Why Choose CardanoPay?
+              Why Choose TrustBridge?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Experience the future of cross-border payments with cutting-edge technology
@@ -345,7 +345,7 @@ export default function Home() {
 
       <footer className="relative z-10 border-t border-border/50 py-12">
         <div className="container mx-auto px-6 text-center text-muted-foreground">
-          <p>&copy; 2024 CardanoPay. Powered by Cardano Blockchain.</p>
+          <p>&copy; 2024 TrustBridge. Powered by Cardano Blockchain.</p>
         </div>
       </footer>
     </div>
