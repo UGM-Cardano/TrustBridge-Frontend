@@ -75,7 +75,7 @@ export default function Chat() {
       },
       {
         id: 'ai_assistant',
-        name: 'CardanoPay AI',
+        name: 'TrustBridge AI',
         walletAddress: '',
         isOnline: true,
       }
@@ -100,7 +100,7 @@ export default function Chat() {
       },
       {
         id: '2',
-        text: 'Good! I just set up CardanoPay. Want to try a quick payment?',
+        text: 'Good! I just set up TrustBridge. Want to try a quick payment?',
         sender: 'user',
         timestamp: new Date(Date.now() - 50 * 60 * 1000),
         type: 'text'
@@ -214,7 +214,7 @@ export default function Chat() {
             : msg
         ));
         setIsTyping(false);
-      }, 3000);
+      }, 3000);   
     } else {
       setIsTyping(false);
     }
@@ -301,7 +301,7 @@ export default function Chat() {
   return (
     <div className="h-screen w-full dark flex">
       <Head>
-        <title>Chat - CardanoPay</title>
+        <title>Chat - TrustBridge</title>
         <meta name="description" content="WhatsApp-style messaging for crypto payments" />
       </Head>
 
@@ -454,7 +454,7 @@ export default function Chat() {
               
               {selectedContact.id === 'ai_assistant' && (
                 <div className="mt-2 text-xs text-muted-foreground">
-                  💡 Ask me about payments, wallet setup, fees, security, or any CardanoPay questions!
+                  💡 Ask me about payments, wallet setup, fees, security, or any TrustBridge questions!
                 </div>
               )}
             </div>
@@ -462,7 +462,7 @@ export default function Chat() {
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <h3 className="text-xl font-semibold mb-2 text-glow">Welcome to CardanoPay Chat</h3>
+              <h3 className="text-xl font-semibold mb-2 text-glow">Welcome to TrustBridge Chat</h3>
               <p className="text-muted-foreground">Select a contact to start messaging and sending payments</p>
             </div>
           </div>
