@@ -3,12 +3,14 @@ import { WalletConnect } from "@/components/WalletConnect";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Zap, Shield, Globe, ArrowRight, Sparkles } from "lucide-react";
+import { MessageCircle, Zap, Shield, Globe, ArrowRight, Sparkles, X, Play, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -83,7 +85,9 @@ export default function Home() {
               variant="outline" 
               size="lg" 
               className="text-lg px-8 py-3 hover:glow-effect transition-all duration-300"
+              onClick={() => setShowDemoModal(true)}
             >
+              <Play className="mr-2 h-5 w-5" />
               Watch Demo
             </Button>
           </div>
@@ -243,6 +247,100 @@ export default function Home() {
             </Button>
           </div>
         </section>
+
+        {/* Demo Modal */}
+        <AnimatePresence>
+          {showDemoModal && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowDemoModal(false)}
+            >
+              <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="glass-effect rounded-2xl p-8 max-w-lg w-full relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close Button */}
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="absolute top-4 right-4 hover:glow-effect"
+                  onClick={() => setShowDemoModal(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+
+                {/* Modal Content */}
+                <div className="text-center">
+                  <motion.div 
+                    className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Clock className="w-10 h-10 text-white" />
+                  </motion.div>
+
+                  <h3 className="text-3xl font-bold mb-4 text-glow">
+                    Demo Coming Soon!
+                  </h3>
+                  
+                  <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                    We&apos;re putting the finishing touches on an amazing interactive demo that will showcase:
+                  </p>
+
+                  <div className="text-left space-y-3 mb-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                      <span className="text-sm">Live WhatsApp payment simulation</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+                      <span className="text-sm">Real-time Cardano transactions</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+                      <span className="text-sm">AI assistant interactions</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }} />
+                      <span className="text-sm">Smart contract features</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={() => router.push('/dashboard')}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect"
+                    >
+                      Try Live App Instead
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowDemoModal(false)}
+                      className="flex-1 hover:glow-effect"
+                    >
+                      Maybe Later
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Want to be notified when the demo is ready? 
+                    <span className="text-blue-400 cursor-pointer hover:underline ml-1">
+                      Join our newsletter
+                    </span>
+                  </p>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <footer className="relative z-10 border-t border-border/50 py-12">

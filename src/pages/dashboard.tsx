@@ -31,8 +31,6 @@ import {
   QrCode,
   Users,
   Globe,
-  Shield,
-  Settings,
   Bell,
   Menu,
   Bot,
