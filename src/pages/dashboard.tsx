@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { WalletService } from "@/lib/walletService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { motion } from "framer-motion";
+import QRCode from "react-qr-code";
 import { 
   Send, 
   Wallet, 
@@ -22,7 +27,17 @@ import {
   DollarSign,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  QrCode,
+  Users,
+  Globe,
+  Shield,
+  Settings,
+  Bell,
+  Menu,
+  Bot,
+  Zap,
+  PieChart as PieChartIcon
 } from "lucide-react";
 
 const mockTransactions = [
@@ -32,11 +47,38 @@ const mockTransactions = [
   { id: "4", type: "received", amount: 75, currency: "USD", from: "+5566778899", status: "completed", time: "3 days ago", whatsapp: true },
 ];
 
+const chartData = [
+  { name: 'Jan', sent: 1200, received: 800, volume: 2000 },
+  { name: 'Feb', sent: 1900, received: 1200, volume: 3100 },
+  { name: 'Mar', sent: 3000, received: 2100, volume: 5100 },
+  { name: 'Apr', sent: 2800, received: 1800, volume: 4600 },
+  { name: 'May', sent: 1890, received: 2400, volume: 4290 },
+  { name: 'Jun', sent: 2390, received: 3800, volume: 6190 },
+];
+
+const currencyData = [
+  { name: 'ADA', value: 45, color: '#0ea5e9' },
+  { name: 'USD', value: 30, color: '#22c55e' },
+  { name: 'EUR', value: 15, color: '#f59e0b' },
+  { name: 'GBP', value: 10, color: '#ef4444' },
+];
+
+const countryData = [
+  { country: 'United States', transactions: 124, amount: 15420 },
+  { country: 'United Kingdom', transactions: 89, amount: 12350 },
+  { country: 'Germany', transactions: 76, amount: 9870 },
+  { country: 'Canada', transactions: 54, amount: 7650 },
+  { country: 'Australia', transactions: 43, amount: 5430 },
+];
+
 export default function Dashboard() {
+  const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
   const [sendAmount, setSendAmount] = useState("");
   const [recipientWalletId, setRecipientWalletId] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [showQR, setShowQR] = useState(false);
+  const [currentWalletAddress] = useState("addr1qxy2lm3dx4ehrnq6g8yp8zx4rrqq3z3qg8yp8zx4rrqq3z");
 
   useEffect(() => {
     setIsVisible(true);
@@ -81,69 +123,238 @@ export default function Dashboard() {
                   <p className="text-sm text-muted-foreground">Dashboard</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              
+              <div className="hidden md:flex items-center gap-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => router.push('/chat')}
+                  className="hover:glow-effect"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Chat
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setShowQR(!showQR)}
+                  className="hover:glow-effect"
+                >
+                  <QrCode className="w-4 h-4 mr-2" />
+                  QR Code
+                </Button>
+                <Button 
+                  variant="ghost"
+                  className="hover:glow-effect"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Contacts
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" className="relative hover:glow-effect">
+                  <Bell className="w-4 h-4" />
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+                </Button>
+                
                 <Badge variant="outline" className="border-green-500/20 text-green-400 bg-green-500/10">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-2" />
                   Connected
                 </Badge>
-                <Avatar>
-                  <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                    U
-                  </AvatarFallback>
-                </Avatar>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                          U
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="glass-effect">
+                    <DropdownMenuItem onClick={() => router.push('/profile')}>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/security')}>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Security
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/')}>
+                      <ArrowUpRight className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
         </header>
 
+        {/* QR Code Modal */}
+        {showQR && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowQR(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              className="glass-effect rounded-xl p-6 max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-4 text-glow">Your Wallet Address</h3>
+                <div className="bg-white p-4 rounded-lg mb-4">
+                  <QRCode value={currentWalletAddress} size={200} />
+                </div>
+                <p className="text-sm text-muted-foreground mb-4 break-all">
+                  {currentWalletAddress}
+                </p>
+                <Button 
+                  onClick={() => navigator.clipboard.writeText(currentWalletAddress)}
+                  className="w-full"
+                >
+                  Copy Address
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         <div className={`relative z-10 container mx-auto px-6 py-8 transition-all duration-1000 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Balance
-                </CardTitle>
-                <Wallet className="h-4 w-4 text-blue-400 group-hover:animate-glow" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-glow">$2,847.50</div>
-                <div className="flex items-center text-xs text-green-400 mt-1">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +5.2% from last month
-                </div>
-              </CardContent>
-            </Card>
+          {/* AI Assistant FAB */}
+          <motion.div 
+            className="fixed bottom-6 right-6 z-40"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button 
+              onClick={() => router.push('/chat?contact=ai_assistant')}
+              className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 glow-effect shadow-lg group"
+            >
+              <Bot className="w-6 h-6 group-hover:animate-glow" />
+            </Button>
+          </motion.div>
 
-            <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  This Month
-                </CardTitle>
-                <Send className="h-4 w-4 text-purple-400 group-hover:animate-glow" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-glow">$1,235.80</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  12 transactions sent
-                </div>
-              </CardContent>
-            </Card>
+          {/* Quick Actions */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <motion.div whileHover={{ scale: 1.02 }}>
+              <Button 
+                onClick={() => router.push('/chat')}
+                className="w-full h-20 glass-effect hover:glow-effect flex flex-col gap-2 transition-all duration-300"
+                variant="ghost"
+              >
+                <MessageCircle className="w-6 h-6 text-blue-400" />
+                <span className="text-sm">Chat & Pay</span>
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }}>
+              <Button 
+                onClick={() => setShowQR(true)}
+                className="w-full h-20 glass-effect hover:glow-effect flex flex-col gap-2 transition-all duration-300"
+                variant="ghost"
+              >
+                <QrCode className="w-6 h-6 text-purple-400" />
+                <span className="text-sm">QR Code</span>
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }}>
+              <Button 
+                className="w-full h-20 glass-effect hover:glow-effect flex flex-col gap-2 transition-all duration-300"
+                variant="ghost"
+              >
+                <Users className="w-6 h-6 text-green-400" />
+                <span className="text-sm">Contacts</span>
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }}>
+              <Button 
+                className="w-full h-20 glass-effect hover:glow-effect flex flex-col gap-2 transition-all duration-300"
+                variant="ghost"
+              >
+                <Zap className="w-6 h-6 text-yellow-400" />
+                <span className="text-sm">Quick Send</span>
+              </Button>
+            </motion.div>
+          </div>
 
-            <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Active Contacts
-                </CardTitle>
-                <MessageCircle className="h-4 w-4 text-green-400 group-hover:animate-glow" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-glow">47</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  WhatsApp verified
-                </div>
-              </CardContent>
-            </Card>
+          {/* Enhanced Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <motion.div whileHover={{ scale: 1.02 }}>
+              <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Total Balance
+                  </CardTitle>
+                  <Wallet className="h-4 w-4 text-blue-400 group-hover:animate-glow" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-glow">$2,847.50</div>
+                  <div className="flex items-center text-xs text-green-400 mt-1">
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    +5.2% from last month
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.02 }}>
+              <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Monthly Volume
+                  </CardTitle>
+                  <Send className="h-4 w-4 text-purple-400 group-hover:animate-glow" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-glow">$6,190</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    28 transactions
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.02 }}>
+              <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Global Reach
+                  </CardTitle>
+                  <Globe className="h-4 w-4 text-cyan-400 group-hover:animate-glow" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-glow">12</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Countries reached
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.02 }}>
+              <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Active Contacts
+                  </CardTitle>
+                  <MessageCircle className="h-4 w-4 text-green-400 group-hover:animate-glow" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-glow">47</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    WhatsApp verified
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
           {/* Main Content */}
@@ -346,38 +557,125 @@ export default function Dashboard() {
                 </TabsContent>
 
                 <TabsContent value="analytics">
-                  <Card className="glass-effect">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-glow">
-                        <TrendingUp className="w-5 h-5" />
-                        Payment Analytics
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div className="text-center p-6 glass-effect rounded-lg">
-                            <div className="text-3xl font-bold text-blue-400">$5,420</div>
-                            <div className="text-muted-foreground">Total Volume</div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Transaction Volume Chart */}
+                    <Card className="glass-effect">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-glow">
+                          <TrendingUp className="w-5 h-5" />
+                          Transaction Volume
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                              <XAxis dataKey="name" stroke="#9CA3AF" />
+                              <YAxis stroke="#9CA3AF" />
+                              <Tooltip 
+                                contentStyle={{ 
+                                  backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px' 
+                                }}
+                              />
+                              <Line type="monotone" dataKey="sent" stroke="#3B82F6" strokeWidth={3} />
+                              <Line type="monotone" dataKey="received" stroke="#10B981" strokeWidth={3} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Currency Distribution */}
+                    <Card className="glass-effect">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-glow">
+                          <PieChartIcon className="w-5 h-5" />
+                          Currency Distribution
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={currencyData}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={100}
+                                fill="#8884d8"
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                              >
+                                {currencyData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                              </Pie>
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Global Transactions */}
+                    <Card className="glass-effect lg:col-span-2">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-glow">
+                          <Globe className="w-5 h-5" />
+                          Global Transactions
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={countryData}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                              <XAxis dataKey="country" stroke="#9CA3AF" />
+                              <YAxis stroke="#9CA3AF" />
+                              <Tooltip 
+                                contentStyle={{ 
+                                  backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px' 
+                                }}
+                              />
+                              <Bar dataKey="amount" fill="#8B5CF6" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Quick Stats */}
+                    <Card className="glass-effect lg:col-span-2">
+                      <CardHeader>
+                        <CardTitle className="text-glow">Quick Statistics</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                          <div className="text-center p-4 glass-effect rounded-lg">
+                            <div className="text-2xl font-bold text-blue-400">$6,190</div>
+                            <div className="text-sm text-muted-foreground">Total Volume</div>
                           </div>
-                          <div className="text-center p-6 glass-effect rounded-lg">
-                            <div className="text-3xl font-bold text-green-400">28</div>
-                            <div className="text-muted-foreground">Transactions</div>
+                          <div className="text-center p-4 glass-effect rounded-lg">
+                            <div className="text-2xl font-bold text-green-400">28</div>
+                            <div className="text-sm text-muted-foreground">Transactions</div>
+                          </div>
+                          <div className="text-center p-4 glass-effect rounded-lg">
+                            <div className="text-2xl font-bold text-purple-400">$221</div>
+                            <div className="text-sm text-muted-foreground">Avg. Transaction</div>
+                          </div>
+                          <div className="text-center p-4 glass-effect rounded-lg">
+                            <div className="text-2xl font-bold text-cyan-400">5</div>
+                            <div className="text-sm text-muted-foreground">Countries</div>
                           </div>
                         </div>
-                        <div className="space-y-4">
-                          <div className="text-center p-6 glass-effect rounded-lg">
-                            <div className="text-3xl font-bold text-purple-400">$23.50</div>
-                            <div className="text-muted-foreground">Avg. Transaction</div>
-                          </div>
-                          <div className="text-center p-6 glass-effect rounded-lg">
-                            <div className="text-3xl font-bold text-cyan-400">12</div>
-                            <div className="text-muted-foreground">Countries</div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
