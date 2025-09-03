@@ -38,7 +38,7 @@ class AIService {
 
   private buildPrompt(message: string, context?: Record<string, unknown>): string {
     const systemContext = `
-You are CardanoPay AI Assistant, a helpful AI that specializes in:
+You are TrustBridge AI Assistant, a helpful AI that specializes in:
 - Cardano blockchain payments and transactions
 - WhatsApp-based payment guidance
 - Currency conversion and exchange rates
@@ -50,7 +50,7 @@ Current context: ${JSON.stringify(context || {})}
 
 User message: ${message}
 
-Provide helpful, accurate, and concise responses. Focus on CardanoPay features and Cardano blockchain payments.
+Provide helpful, accurate, and concise responses. Focus on TrustBridge features and Cardano blockchain payments.
 If asked about setting up payments, guide users through the WhatsApp integration process.
 Always prioritize security and warn about potential scams.
 `;
@@ -62,7 +62,7 @@ Always prioritize security and warn about potential scams.
     const lowerMessage = message.toLowerCase();
     
     if (lowerMessage.includes('payment') || lowerMessage.includes('send money')) {
-      return `💳 To send money via CardanoPay:
+      return `💳 To send money via TrustBridge:
       
 1. Connect your Cardano wallet
 2. Enter recipient's wallet address
@@ -79,13 +79,13 @@ Need help with any of these steps?`;
 1. Click "Connect Wallet" button
 2. Choose your Cardano wallet (Eternl, Nami, etc.)
 3. Authorize the connection
-4. Your wallet will be linked to CardanoPay
+4. Your wallet will be linked to TrustBridge
 
 Supported wallets: Eternl, Nami, Flint, and more Cardano wallets.`;
     }
     
     if (lowerMessage.includes('fee') || lowerMessage.includes('cost')) {
-      return `💰 CardanoPay Fees:
+      return `💰 TrustBridge Fees:
       
 • Network Fee: ~0.5 ADA (paid to Cardano network)
 • Service Fee: 0.1% of transaction amount
@@ -96,7 +96,7 @@ Much cheaper than traditional money transfer services!`;
     }
     
     if (lowerMessage.includes('safe') || lowerMessage.includes('secure')) {
-      return `🔒 CardanoPay Security Features:
+      return `🔒 TrustBridge Security Features:
       
 • Built on Cardano blockchain (proven security)
 • Multi-signature wallet support
@@ -120,7 +120,7 @@ Your funds are always under your control!`;
 Making crypto payments as easy as sending a message!`;
     }
 
-    return `🤖 Hi! I'm your CardanoPay AI Assistant. I can help you with:
+    return `🤖 Hi! I'm your TrustBridge AI Assistant. I can help you with:
 
 • Setting up payments and transfers
 • Connecting your Cardano wallet  
@@ -129,7 +129,7 @@ Making crypto payments as easy as sending a message!`;
 • WhatsApp payment integration
 • Troubleshooting issues
 
-What would you like to know about CardanoPay?`;
+What would you like to know about TrustBridge?`;
   }
 
   async analyzeTransaction(txData: Record<string, unknown>): Promise<string> {
@@ -139,7 +139,7 @@ What would you like to know about CardanoPay?`;
 
     try {
       const prompt = `
-Analyze this Cardano transaction for CardanoPay:
+Analyze this Cardano transaction for TrustBridge:
 
 Transaction Data: ${JSON.stringify(txData)}
 
@@ -197,7 +197,7 @@ Need more details? Check your transaction history or contact support.`;
 
   async getSuggestion(userAction: string): Promise<string> {
     const suggestions = {
-      'first_payment': `🎉 Welcome to CardanoPay! For your first payment:
+      'first_payment': `🎉 Welcome to TrustBridge! For your first payment:
 
 1. Start with a small amount to test the system
 2. Double-check the recipient's wallet address

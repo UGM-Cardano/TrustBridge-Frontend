@@ -101,7 +101,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen w-full dark">
       <Head>
-        <title>Dashboard - CardanoPay</title>
+        <title>Dashboard - TrustBridge</title>
         <meta name="description" content="Manage your cross-border payments" />
       </Head>
 
@@ -119,7 +119,7 @@ export default function Dashboard() {
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-glow">CardanoPay</h1>
+                  <h1 className="text-2xl font-bold text-glow">TrustBridge</h1>
                   <p className="text-sm text-muted-foreground">Dashboard</p>
                 </div>
               </div>
