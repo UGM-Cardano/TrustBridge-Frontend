@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { BrowserWallet } from '@meshsdk/core';
 
 interface WalletContextType {
@@ -34,33 +34,7 @@ export function WalletProvider({ children }: WalletProviderProps) {
   const [balance, setBalance] = useState('0');
   const [address, setAddress] = useState('');
 
-  const connectWallet = async (walletName: string) => {
-    try {
-      setConnecting(true);
-      const browserWallet = await BrowserWallet.enable(walletName);
-      setWallet(browserWallet);
-      setConnected(true);
-
-      const walletAddress = await browserWallet.getChangeAddress();
-      setAddress(walletAddress);
-
-      await refreshBalance();
-    } catch (error) {
-      console.error('Error connecting wallet:', error);
-      throw error;
-    } finally {
-      setConnecting(false);
-    }
-  };
-
-  const disconnectWallet = () => {
-    setWallet(null);
-    setConnected(false);
-    setBalance('0');
-    setAddress('');
-  };
-
-  const refreshBalance = async () => {
+  const refreshBalance = useCallback(async () => {
     if (!wallet) return;
     
     try {
@@ -79,17 +53,44 @@ export function WalletProvider({ children }: WalletProviderProps) {
     } catch (error) {
       console.error('Error fetching balance:', error);
     }
+  }, [wallet]);
+
+  const connectWallet = useCallback(async (walletName: string) => {
+    try {
+      setConnecting(true);
+      const browserWallet = await BrowserWallet.enable(walletName);
+      setWallet(browserWallet);
+      setConnected(true);
+
+      const walletAddress = await browserWallet.getChangeAddress();
+      setAddress(walletAddress);
+
+      await refreshBalance();
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+      throw error;
+    } finally {
+      setConnecting(false);
+    }
+  }, [refreshBalance]);
+
+  const disconnectWallet = () => {
+    setWallet(null);
+    setConnected(false);
+    setBalance('0');
+    setAddress('');
   };
 
-  const sendTransaction = async (recipientAddress: string, amount: string): Promise<string> => {
+  const sendTransaction = useCallback(async (recipientAddress: string, amount: string): Promise<string> => {
     if (!wallet) throw new Error('Wallet not connected');
 
     try {
-      const tx = await wallet.createTx()
-        .payToAddress(recipientAddress, [{ unit: 'lovelace', quantity: (parseFloat(amount) * 1000000).toString() }])
-        .complete();
-
-      const signedTx = await wallet.signTx(tx);
+      const { Transaction } = await import('@meshsdk/core');
+      const tx = new Transaction({ initiator: wallet });
+      tx.sendLovelace(recipientAddress, (parseFloat(amount) * 1000000).toString());
+      
+      const unsignedTx = await tx.build();
+      const signedTx = await wallet.signTx(unsignedTx);
       const txHash = await wallet.submitTx(signedTx);
       
       await refreshBalance();
@@ -98,7 +99,7 @@ export function WalletProvider({ children }: WalletProviderProps) {
       console.error('Error sending transaction:', error);
       throw error;
     }
-  };
+  }, [wallet, refreshBalance]);
 
   useEffect(() => {
     const checkConnection = async () => {
@@ -106,14 +107,14 @@ export function WalletProvider({ children }: WalletProviderProps) {
       if (savedWallet) {
         try {
           await connectWallet(savedWallet);
-        } catch (error) {
+        } catch {
           localStorage.removeItem('connectedWallet');
         }
       }
     };
     
     checkConnection();
-  }, []);
+  }, [connectWallet]);
 
   useEffect(() => {
     if (connected && wallet) {
@@ -123,7 +124,7 @@ export function WalletProvider({ children }: WalletProviderProps) {
     } else {
       localStorage.removeItem('connectedWallet');
     }
-  }, [connected, wallet]);
+  }, [connected, wallet, refreshBalance]);
 
   const value: WalletContextType = {
     wallet,
