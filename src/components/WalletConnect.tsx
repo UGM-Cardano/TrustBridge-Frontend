@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  Wallet, 
-  Copy, 
-  ExternalLink, 
-  Loader2, 
-  CheckCircle, 
+import {
+  Wallet,
+  Copy,
+  ExternalLink,
+  Loader2,
+  CheckCircle,
   AlertCircle,
   Sparkles
 } from 'lucide-react';
@@ -24,7 +24,7 @@ const supportedWallets = [
   },
   {
     name: 'nami',
-    displayName: 'Nami Wallet', 
+    displayName: 'Nami Wallet',
     icon: '🌊',
     description: 'Simple and intuitive Cardano wallet'
   },
@@ -143,8 +143,8 @@ export function WalletConnect() {
   return (
     <Dialog open={showDialog} onOpenChange={setShowDialog}>
       <DialogTrigger asChild>
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect text-sm md:text-lg px-6 md:px-8 py-3 group transition-all duration-300 w-full sm:w-auto"
           disabled={connecting}
         >
@@ -156,7 +156,7 @@ export function WalletConnect() {
           Connect Wallet
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="glass-effect max-w-md mx-4 md:mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-glow">
@@ -167,7 +167,7 @@ export function WalletConnect() {
             Choose a Cardano wallet to connect and start sending payments
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-3 mt-6">
           {supportedWallets.map((walletInfo) => (
             <Button
@@ -194,7 +194,7 @@ export function WalletConnect() {
             </Button>
           ))}
         </div>
-        
+
         <div className="mt-4 md:mt-6 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
           <div className="flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />

@@ -1,690 +1,369 @@
 import Head from "next/head";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { WalletService } from "@/lib/walletService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-import { motion } from "framer-motion";
-import QRCode from "react-qr-code";
-import { 
-  Send, 
-  Wallet, 
-  History, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  MessageCircle, 
-  TrendingUp,
-  Sparkles,
-  DollarSign,
+import {
+  CreditCard,
+  ArrowUpRight,
+  ArrowDownLeft,
   Clock,
   CheckCircle,
-  AlertCircle,
-  QrCode,
-  Users,
-  Globe,
-  Bell,
-  Menu,
-  Bot,
-  Zap,
-  PieChart as PieChartIcon
+  Wallet,
+  Send,
+  History,
+  LogOut,
+  MessageCircle,
+  Eye,
+  EyeOff
 } from "lucide-react";
+import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
 
-const mockTransactions = [
-  { id: "1", type: "sent", amount: 250, currency: "USD", to: "+1234567890", status: "completed", time: "2 hours ago", whatsapp: true },
-  { id: "2", type: "received", amount: 180, currency: "EUR", from: "+9876543210", status: "completed", time: "1 day ago", whatsapp: true },
-  { id: "3", type: "sent", amount: 420, currency: "GBP", to: "+1122334455", status: "pending", time: "2 days ago", whatsapp: true },
-  { id: "4", type: "received", amount: 75, currency: "USD", from: "+5566778899", status: "completed", time: "3 days ago", whatsapp: true },
-];
+interface User {
+  id: string;
+  whatsappNumber: string;
+  status: string;
+}
 
-const chartData = [
-  { name: 'Jan', sent: 1200, received: 800, volume: 2000 },
-  { name: 'Feb', sent: 1900, received: 1200, volume: 3100 },
-  { name: 'Mar', sent: 3000, received: 2100, volume: 5100 },
-  { name: 'Apr', sent: 2800, received: 1800, volume: 4600 },
-  { name: 'May', sent: 1890, received: 2400, volume: 4290 },
-  { name: 'Jun', sent: 2390, received: 3800, volume: 6190 },
-];
+interface WalletBalance {
+  ada: number;
+  lovelace: string;
+  assets: any[];
+}
 
-const currencyData = [
-  { name: 'ADA', value: 45, color: '#0ea5e9' },
-  { name: 'USD', value: 30, color: '#22c55e' },
-  { name: 'EUR', value: 15, color: '#f59e0b' },
-  { name: 'GBP', value: 10, color: '#ef4444' },
-];
-
-const countryData = [
-  { country: 'United States', transactions: 124, amount: 15420 },
-  { country: 'United Kingdom', transactions: 89, amount: 12350 },
-  { country: 'Germany', transactions: 76, amount: 9870 },
-  { country: 'Canada', transactions: 54, amount: 7650 },
-  { country: 'Australia', transactions: 43, amount: 5430 },
-];
+interface Transfer {
+  transferId: string;
+  status: string;
+  paymentMethod: string;
+  sender: {
+    currency: string;
+    amount: number;
+  };
+  recipient: {
+    name: string;
+    currency: string;
+    amount: number;
+  };
+  createdAt: string;
+}
 
 export default function Dashboard() {
   const router = useRouter();
-  const [isVisible, setIsVisible] = useState(false);
-  const [sendAmount, setSendAmount] = useState("");
-  const [recipientWalletId, setRecipientWalletId] = useState("");
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
-  const [showQR, setShowQR] = useState(false);
-  const [currentWalletAddress] = useState("addr1qxy2lm3dx4ehrnq6g8yp8zx4rrqq3z3qg8yp8zx4rrqq3z");
+  const [user, setUser] = useState<User | null>(null);
+  const [balance, setBalance] = useState<WalletBalance | null>(null);
+  const [recentTransfers, setRecentTransfers] = useState<Transfer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showBalance, setShowBalance] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true);
-  }, []);
+    // Check authentication
+    const token = localStorage.getItem('accessToken');
+    const userData = localStorage.getItem('user');
 
-  const handleSendMoney = () => {
-    if (!WalletService.validateWalletId(recipientWalletId)) {
-      alert("Invalid wallet ID format");
+    if (!token || !userData) {
+      router.push('/login');
       return;
     }
 
+    setUser(JSON.parse(userData));
+    loadDashboardData();
+  }, [router]);
+
+  const loadDashboardData = async () => {
     try {
-      const whatsappLink = WalletService.generateWhatsAppLink(recipientWalletId, sendAmount, selectedCurrency);
-      window.open(whatsappLink, '_blank');
-    } catch {
-      alert("Wallet ID not found in contacts. Please add contact first.");
+      const token = localStorage.getItem('accessToken');
+
+      // Load wallet balance
+      const balanceResponse = await fetch('/api/cardano/backend-info', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (balanceResponse.ok) {
+        const balanceData = await balanceResponse.json();
+        setBalance(balanceData.data.balance);
+      }
+
+      // Load recent transfers
+      const transferResponse = await fetch(`/api/transfer/history?limit=5`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (transferResponse.ok) {
+        const transferData = await transferResponse.json();
+        setRecentTransfers(transferData.data.transfers || []);
+      }
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    router.push('/');
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'pending': { color: 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30', text: 'Pending' },
+      'paid': { color: 'bg-blue-500/20 text-blue-300 border-blue-400/30', text: 'Paid' },
+      'processing': { color: 'bg-purple-500/20 text-purple-300 border-purple-400/30', text: 'Processing' },
+      'completed': { color: 'bg-green-500/20 text-green-300 border-green-400/30', text: 'Completed' },
+      'failed': { color: 'bg-red-500/20 text-red-300 border-red-400/30', text: 'Failed' },
+      'cancelled': { color: 'bg-gray-500/20 text-gray-300 border-gray-400/30', text: 'Cancelled' },
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge className={`${config.color} border`}>{config.text}</Badge>;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-blue-300">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen w-full dark">
+    <div className="min-h-screen">
       <Head>
         <title>Dashboard - TrustBridge</title>
-        <meta name="description" content="Manage your cross-border payments" />
+        <meta name="description" content="Manage your cross-border payments and view transaction history" />
       </Head>
 
-      <main className="relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="fixed inset-0 cyber-grid opacity-20" />
-        <div className="fixed inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-cyan-500/5" />
-        
-        {/* Header */}
-        <header className="relative z-10 glass-effect border-b border-border/50">
-          <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 md:gap-3">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-lg md:text-2xl font-bold text-glow">TrustBridge</h1>
-                  <p className="text-xs md:text-sm text-muted-foreground">Dashboard</p>
-                </div>
+      {/* Navigation */}
+      <nav className="glass border-0 border-b border-blue-500/20 rounded-none">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center glow-blue">
+                <CreditCard className="w-6 h-6 text-white" />
               </div>
-              
-              <div className="hidden lg:flex items-center gap-2 md:gap-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => router.push('/chat')}
-                  className="hover:glow-effect text-sm"
-                  size="sm"
-                >
-                  <MessageCircle className="w-4 h-4 mr-1 md:mr-2" />
-                  <span className="hidden md:inline">Chat</span>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setShowQR(!showQR)}
-                  className="hover:glow-effect text-sm"
-                  size="sm"
-                >
-                  <QrCode className="w-4 h-4 mr-1 md:mr-2" />
-                  <span className="hidden md:inline">QR</span>
-                </Button>
-                <Button 
-                  variant="ghost"
-                  className="hover:glow-effect text-sm"
-                  size="sm"
-                >
-                  <Users className="w-4 h-4 mr-1 md:mr-2" />
-                  <span className="hidden md:inline">Contacts</span>
-                </Button>
+              <span className="text-2xl font-bold text-glow">TrustBridge</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-blue-300">
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-sm">{user?.whatsappNumber}</span>
               </div>
-
-              <div className="flex items-center gap-2 md:gap-3">
-                <Button variant="ghost" size="sm" className="relative hover:glow-effect">
-                  <Bell className="w-4 h-4" />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
-                </Button>
-                
-                <Badge variant="outline" className="border-green-500/20 text-green-400 bg-green-500/10 hidden sm:flex">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-1 md:mr-2" />
-                  <span className="text-xs md:text-sm">Connected</span>
-                </Badge>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                          U
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="glass-effect">
-                    {/* <DropdownMenuItem onClick={() => router.push('/profile')}>
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push('/security')}>
-                      <Shield className="w-4 h-4 mr-2" />
-                      Security
-                    </DropdownMenuItem> */}
-                    <DropdownMenuItem onClick={() => router.push('/')}>
-                      <ArrowUpRight className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <Button variant="ghost" size="sm" className="lg:hidden">
-                  <Menu className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="flex items-center space-x-2 glass border-blue-400/30 text-blue-300 hover:text-white hover:border-blue-300/50"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </Button>
             </div>
           </div>
-        </header>
+        </div>
+      </nav>
 
-        {/* QR Code Modal */}
-        {showQR && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowQR(false)}
-          >
-            <motion.div 
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              className="glass-effect rounded-xl p-4 md:p-6 max-w-sm w-full mx-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-4 text-glow">Your Wallet Address</h3>
-                <div className="bg-white p-3 md:p-4 rounded-lg mb-4 flex justify-center">
-                  <QRCode value={currentWalletAddress} size={window.innerWidth < 640 ? 150 : 200} />
-                </div>
-                <p className="text-sm text-muted-foreground mb-4 break-all">
-                  {currentWalletAddress}
-                </p>
-                <Button 
-                  onClick={() => navigator.clipboard.writeText(currentWalletAddress)}
-                  className="w-full"
+      {/* Main Dashboard */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">Welcome back!</h1>
+          <p className="text-blue-200 mt-2">Manage your cross-border payments and track transfers</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Wallet Balance */}
+          <Card className="lg:col-span-1 glass-dark border-blue-400/30">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <Wallet className="w-5 h-5" />
+                  <span>Wallet Balance</span>
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowBalance(!showBalance)}
                 >
-                  Copy Address
+                  {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white mb-2">
+                {showBalance ? `${balance?.ada.toFixed(2) || '0.00'} ADA` : '••••••'}
+              </div>
+              <p className="text-blue-200 text-sm mb-4">
+                {balance?.lovelace || '0'} Lovelace
+              </p>
 
-        <div className={`relative z-10 container mx-auto px-4 md:px-6 py-4 md:py-8 transition-all duration-1000 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
-          {/* AI Assistant FAB */}
-          <motion.div 
-            className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-40"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button 
-              onClick={() => router.push('/chat?contact=ai_assistant')}
-              className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 glow-effect shadow-lg group"
-            >
-              <Bot className="w-5 h-5 md:w-6 md:h-6 group-hover:animate-glow" />
-            </Button>
-          </motion.div>
+              {balance?.assets && balance.assets.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-blue-200">Assets:</p>
+                  {balance.assets.slice(0, 3).map((asset, index) => (
+                    <div key={index} className="flex justify-between text-sm">
+                      <span className="text-blue-300">{asset.unit.slice(0, 8)}...</span>
+                      <span className="font-medium">{asset.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <Button 
-                onClick={() => router.push('/chat')}
-                className="w-full h-16 md:h-20 glass-effect hover:glow-effect flex flex-col gap-1 md:gap-2 transition-all duration-300 p-2 md:p-4"
-                variant="ghost"
+          <Card className="lg:col-span-2 glass-dark border-blue-400/30">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Start a new transfer or view your transaction history</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button
+                  onClick={() => router.push('/send')}
+                  className="btn-space p-6 h-auto flex flex-col items-center space-y-2 glow-effect"
+                >
+                  <Send className="w-8 h-8" />
+                  <div className="text-center">
+                    <div className="font-semibold">Send Money</div>
+                    <div className="text-sm opacity-90">Start a new transfer</div>
+                  </div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/history')}
+                  className="p-6 h-auto flex flex-col items-center space-y-2 glass border-blue-400/30 text-blue-300 hover:text-white"
+                >
+                  <History className="w-8 h-8" />
+                  <div className="text-center">
+                    <div className="font-semibold">View History</div>
+                    <div className="text-sm text-blue-300">See all transfers</div>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Transfers */}
+        <Card className="mt-8 glass-dark border-blue-400/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Recent Transfers</CardTitle>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/history')}
+                className="text-sm glass border-blue-400/30 text-blue-300 hover:text-white"
               >
-                <MessageCircle className="w-4 h-4 md:w-6 md:h-6 text-blue-400" />
-                <span className="text-xs md:text-sm">Chat & Pay</span>
+                View All
               </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <Button 
-                onClick={() => setShowQR(true)}
-                className="w-full h-16 md:h-20 glass-effect hover:glow-effect flex flex-col gap-1 md:gap-2 transition-all duration-300 p-2 md:p-4"
-                variant="ghost"
-              >
-                <QrCode className="w-4 h-4 md:w-6 md:h-6 text-purple-400" />
-                <span className="text-xs md:text-sm">QR Code</span>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <Button 
-                className="w-full h-16 md:h-20 glass-effect hover:glow-effect flex flex-col gap-1 md:gap-2 transition-all duration-300 p-2 md:p-4"
-                variant="ghost"
-              >
-                <Users className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
-                <span className="text-xs md:text-sm">Contacts</span>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <Button 
-                className="w-full h-16 md:h-20 glass-effect hover:glow-effect flex flex-col gap-1 md:gap-2 transition-all duration-300 p-2 md:p-4"
-                variant="ghost"
-              >
-                <Zap className="w-4 h-4 md:w-6 md:h-6 text-yellow-400" />
-                <span className="text-xs md:text-sm">Quick Send</span>
-              </Button>
-            </motion.div>
-          </div>
-
-          {/* Enhanced Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
-                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
-                    Total Balance
-                  </CardTitle>
-                  <Wallet className="h-3 w-3 md:h-4 md:w-4 text-blue-400 group-hover:animate-glow" />
-                </CardHeader>
-                <CardContent className="p-3 md:p-6 pt-0">
-                  <div className="text-lg md:text-2xl font-bold text-glow">$2,847.50</div>
-                  <div className="flex items-center text-xs text-green-400 mt-1">
-                    <TrendingUp className="w-2 h-2 md:w-3 md:h-3 mr-1" />
-                    <span className="hidden sm:inline">+5.2% from last month</span>
-                    <span className="sm:hidden">+5.2%</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
-                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
-                    Monthly Volume
-                  </CardTitle>
-                  <Send className="h-3 w-3 md:h-4 md:w-4 text-purple-400 group-hover:animate-glow" />
-                </CardHeader>
-                <CardContent className="p-3 md:p-6 pt-0">
-                  <div className="text-lg md:text-2xl font-bold text-glow">$6,190</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    <span className="hidden sm:inline">28 transactions</span>
-                    <span className="sm:hidden">28 tx</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
-                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
-                    Global Reach
-                  </CardTitle>
-                  <Globe className="h-3 w-3 md:h-4 md:w-4 text-cyan-400 group-hover:animate-glow" />
-                </CardHeader>
-                <CardContent className="p-3 md:p-6 pt-0">
-                  <div className="text-lg md:text-2xl font-bold text-glow">12</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    <span className="hidden sm:inline">Countries reached</span>
-                    <span className="sm:hidden">Countries</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <Card className="glass-effect hover:glow-effect transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
-                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
-                    Active Contacts
-                  </CardTitle>
-                  <MessageCircle className="h-3 w-3 md:h-4 md:w-4 text-green-400 group-hover:animate-glow" />
-                </CardHeader>
-                <CardContent className="p-3 md:p-6 pt-0">
-                  <div className="text-lg md:text-2xl font-bold text-glow">47</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    <span className="hidden sm:inline">WhatsApp verified</span>
-                    <span className="sm:hidden">Verified</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
-            {/* Send Money Form */}
-            <div className="lg:col-span-1">
-              <Card className="glass-effect hover:glow-effect transition-all duration-300">
-                <CardHeader className="p-4 md:p-6">
-                  <CardTitle className="flex items-center gap-2 text-glow text-lg md:text-xl">
-                    <Send className="w-4 h-4 md:w-5 md:h-5" />
-                    Send Money
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    Send money instantly via WhatsApp
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6 pt-0">
-                  <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="walletId" className="text-sm">Recipient Wallet ID</Label>
-                    <div className="relative">
-                      <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                      <Input
-                        id="walletId"
-                        placeholder="addr1qxy2...4d7f8"
-                        value={recipientWalletId}
-                        onChange={(e) => setRecipientWalletId(e.target.value)}
-                        className="pl-10 glass-effect border-blue-500/20 focus:border-blue-500/50 hover:glow-effect"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1 md:space-y-2">
-                      <Label htmlFor="amount" className="text-sm">Amount</Label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                        <Input
-                          id="amount"
-                          placeholder="0.00"
-                          value={sendAmount}
-                          onChange={(e) => setSendAmount(e.target.value)}
-                          className="pl-10 glass-effect border-blue-500/20 focus:border-blue-500/50 hover:glow-effect"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1 md:space-y-2">
-                      <Label htmlFor="currency" className="text-sm">Currency</Label>
-                      <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                        <SelectTrigger className="glass-effect border-blue-500/20 hover:glow-effect">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="glass-effect">
-                          <SelectItem value="USD">USD</SelectItem>
-                          <SelectItem value="EUR">EUR</SelectItem>
-                          <SelectItem value="GBP">GBP</SelectItem>
-                          <SelectItem value="ADA">ADA</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="p-2 md:p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                    <div className="flex items-center justify-between text-xs md:text-sm">
-                      <span className="text-muted-foreground">Exchange Rate:</span>
-                      <span className="font-medium">1 USD = 2.85 ADA</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs md:text-sm">
-                      <span className="text-muted-foreground">Network Fee:</span>
-                      <span className="font-medium text-green-400">~0.5 ADA</span>
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={handleSendMoney}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 glow-effect group transition-all duration-300"
-                    disabled={!sendAmount || !recipientWalletId}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentTransfers.length === 0 ? (
+              <div className="text-center py-12">
+                <Send className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-white mb-2">No transfers yet</h3>
+                <p className="text-blue-200 mb-6">Start your first transfer to see it here</p>
+                <Button
+                  onClick={() => router.push('/send')}
+                  className="btn-space glow-effect"
+                >
+                  Send Money Now
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentTransfers.map((transfer) => (
+                  <div
+                    key={transfer.transferId}
+                    className="flex items-center justify-between p-4 glass rounded-lg cursor-pointer hover:bg-blue-500/10 transition-colors border border-blue-400/20"
+                    onClick={() => router.push(`/transfer/${transfer.transferId}`)}
                   >
-                    <MessageCircle className="w-4 h-4 mr-1 md:mr-2 group-hover:animate-glow" />
-                    <span className="text-sm md:text-base">Send via WhatsApp</span>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Transaction History */}
-            <div className="lg:col-span-2">
-              <Tabs defaultValue="recent" className="space-y-6">
-                <TabsList className="glass-effect">
-                  <TabsTrigger value="recent" className="data-[state=active]:bg-blue-500/20">
-                    Recent Activity
-                  </TabsTrigger>
-                  <TabsTrigger value="pending" className="data-[state=active]:bg-blue-500/20">
-                    Pending
-                  </TabsTrigger>
-                  <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-500/20">
-                    Analytics
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="recent">
-                  <Card className="glass-effect">
-                    <CardHeader className="p-4 md:p-6">
-                      <CardTitle className="flex items-center gap-2 text-glow text-lg md:text-xl">
-                        <History className="w-4 h-4 md:w-5 md:h-5" />
-                        Recent Transactions
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 md:p-6 pt-0">
-                      <div className="space-y-3 md:space-y-4">
-                        {mockTransactions.map((tx, index) => (
-                          <div 
-                            key={tx.id} 
-                            className={`flex items-center justify-between p-3 md:p-4 rounded-lg glass-effect hover:glow-effect transition-all duration-300 group cursor-pointer ${
-                              isVisible ? 'animate-fade-in' : 'opacity-0'
-                            }`}
-                            style={{ animationDelay: `${index * 100}ms` }}
-                          >
-                            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
-                              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
-                                tx.type === 'sent' 
-                                  ? 'bg-red-500/20 text-red-400' 
-                                  : 'bg-green-500/20 text-green-400'
-                              } group-hover:animate-glow`}>
-                                {tx.type === 'sent' ? (
-                                  <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5" />
-                                ) : (
-                                  <ArrowDownRight className="w-4 h-4 md:w-5 md:h-5" />
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1 md:gap-2">
-                                  <span className="font-medium group-hover:text-primary transition-colors text-sm md:text-base truncate">
-                                    {tx.type === 'sent' ? `To ${tx.to?.substring(0, 8)}...` : `From ${tx.from?.substring(0, 8)}...`}
-                                  </span>
-                                  {tx.whatsapp && (
-                                    <MessageCircle className="w-3 h-3 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
-                                  )}
-                                </div>
-                                <div className="text-xs md:text-sm text-muted-foreground">
-                                  {tx.time}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <div className="font-bold group-hover:text-primary transition-colors text-sm md:text-base">
-                                {tx.type === 'sent' ? '-' : '+'}${tx.amount} {tx.currency}
-                              </div>
-                              <div className="flex items-center gap-1 justify-end">
-                                {tx.status === 'completed' ? (
-                                  <>
-                                    <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
-                                    <span className="text-xs md:text-sm text-green-400 hidden sm:inline">Completed</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Clock className="w-3 h-3 md:w-4 md:h-4 text-yellow-400" />
-                                    <span className="text-xs md:text-sm text-yellow-400 hidden sm:inline">Pending</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center glow-blue">
+                        <ArrowUpRight className="w-5 h-5 text-white" />
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="pending">
-                  <Card className="glass-effect">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-glow">
-                        <Clock className="w-5 h-5" />
-                        Pending Transactions
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {mockTransactions.filter(tx => tx.status === 'pending').map((tx) => (
-                          <div key={tx.id} className="flex items-center justify-between p-4 rounded-lg glass-effect">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center">
-                                <AlertCircle className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <div className="font-medium">{tx.type === 'sent' ? `To ${tx.to}` : `From ${tx.from}`}</div>
-                                <div className="text-sm text-muted-foreground">{tx.time}</div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-bold">${tx.amount} {tx.currency}</div>
-                              <Progress value={65} className="w-20 h-2 mt-1" />
-                            </div>
-                          </div>
-                        ))}
+                      <div>
+                        <div className="font-medium text-white">
+                          {transfer.sender.amount} {transfer.sender.currency} → {transfer.recipient.currency}
+                        </div>
+                        <div className="text-sm text-blue-200">
+                          To: {transfer.recipient.name}
+                        </div>
+                        <div className="text-xs text-blue-300">
+                          {new Date(transfer.createdAt).toLocaleDateString()}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="analytics">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Transaction Volume Chart */}
-                    <Card className="glass-effect">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-glow">
-                          <TrendingUp className="w-5 h-5" />
-                          Transaction Volume
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="h-64 md:h-80">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                              <XAxis dataKey="name" stroke="#9CA3AF" />
-                              <YAxis stroke="#9CA3AF" />
-                              <Tooltip 
-                                contentStyle={{ 
-                                  backgroundColor: 'rgba(0, 0, 0, 0.8)', 
-                                  border: '1px solid #374151',
-                                  borderRadius: '8px' 
-                                }}
-                              />
-                              <Line type="monotone" dataKey="sent" stroke="#3B82F6" strokeWidth={3} />
-                              <Line type="monotone" dataKey="received" stroke="#10B981" strokeWidth={3} />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Currency Distribution */}
-                    <Card className="glass-effect">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-glow">
-                          <PieChartIcon className="w-5 h-5" />
-                          Currency Distribution
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="h-64 md:h-80">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={currencyData}
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={100}
-                                fill="#8884d8"
-                                dataKey="value"
-                                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                              >
-                                {currencyData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                              </Pie>
-                              <Tooltip />
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Global Transactions */}
-                    <Card className="glass-effect lg:col-span-2">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-glow">
-                          <Globe className="w-5 h-5" />
-                          Global Transactions
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="h-64 md:h-80">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={countryData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                              <XAxis dataKey="country" stroke="#9CA3AF" />
-                              <YAxis stroke="#9CA3AF" />
-                              <Tooltip 
-                                contentStyle={{ 
-                                  backgroundColor: 'rgba(0, 0, 0, 0.8)', 
-                                  border: '1px solid #374151',
-                                  borderRadius: '8px' 
-                                }}
-                              />
-                              <Bar dataKey="amount" fill="#8B5CF6" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Quick Stats */}
-                    <Card className="glass-effect lg:col-span-2">
-                      <CardHeader>
-                        <CardTitle className="text-glow">Quick Statistics</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-                          <div className="text-center p-3 md:p-4 glass-effect rounded-lg">
-                            <div className="text-lg md:text-2xl font-bold text-blue-400">$6,190</div>
-                            <div className="text-xs md:text-sm text-muted-foreground">Total Volume</div>
-                          </div>
-                          <div className="text-center p-3 md:p-4 glass-effect rounded-lg">
-                            <div className="text-lg md:text-2xl font-bold text-green-400">28</div>
-                            <div className="text-xs md:text-sm text-muted-foreground">Transactions</div>
-                          </div>
-                          <div className="text-center p-3 md:p-4 glass-effect rounded-lg">
-                            <div className="text-lg md:text-2xl font-bold text-purple-400">$221</div>
-                            <div className="text-xs md:text-sm text-muted-foreground">Avg. Transaction</div>
-                          </div>
-                          <div className="text-center p-3 md:p-4 glass-effect rounded-lg">
-                            <div className="text-lg md:text-2xl font-bold text-cyan-400">5</div>
-                            <div className="text-xs md:text-sm text-muted-foreground">Countries</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    </div>
+                    <div className="text-right">
+                      {getStatusBadge(transfer.status)}
+                      <div className="text-sm text-blue-200 mt-1">
+                        {transfer.recipient.amount} {transfer.recipient.currency}
+                      </div>
+                    </div>
                   </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <Card className="glass-dark border-blue-400/30">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center glow-cyan">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">
+                    {recentTransfers.filter(t => t.status === 'completed').length}
+                  </p>
+                  <p className="text-blue-200 text-sm">Completed Transfers</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-dark border-blue-400/30">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center glow-effect">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">
+                    {recentTransfers.filter(t => ['pending', 'processing'].includes(t.status)).length}
+                  </p>
+                  <p className="text-blue-200 text-sm">Pending Transfers</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-dark border-blue-400/30">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center glow-blue">
+                  <ArrowUpRight className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">{recentTransfers.length}</p>
+                  <p className="text-blue-200 text-sm">Total Transfers</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
