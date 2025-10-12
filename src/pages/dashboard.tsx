@@ -14,7 +14,8 @@ import {
   LogOut,
   MessageCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  TrendingUp
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
@@ -47,11 +48,18 @@ interface Transfer {
   createdAt: string;
 }
 
+interface TransactionStats {
+  totalTransactions: number;
+  completedTransactions: number;
+  totalAmount: number;
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState<WalletBalance | null>(null);
   const [recentTransfers, setRecentTransfers] = useState<Transfer[]>([]);
+  const [stats, setStats] = useState<TransactionStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showBalance, setShowBalance] = useState(false);
 
@@ -71,31 +79,43 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-
-      // Load wallet balance
-      const balanceResponse = await fetch('/api/cardano/backend-info', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      // Use mock data for now
+      setBalance({
+        ada: 100.5,
+        lovelace: '100500000',
+        assets: [
+          { unit: 'mockADA', quantity: '1000000' },
+          { unit: 'mockUSDC', quantity: '500000' },
+        ]
       });
 
-      if (balanceResponse.ok) {
-        const balanceData = await balanceResponse.json();
-        setBalance(balanceData.data.balance);
-      }
-
-      // Load recent transfers
-      const transferResponse = await fetch(`/api/transfer/history?limit=5`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      // Mock recent transfers
+      const mockTransfers = [
+        {
+          transferId: 'TXN-123456789',
+          status: 'completed',
+          paymentMethod: 'WALLET',
+          sender: { currency: 'USD', amount: 100 },
+          recipient: { name: 'John Doe', currency: 'IDR', amount: 1500000 },
+          createdAt: new Date().toISOString(),
         },
-      });
+        {
+          transferId: 'TXN-987654321',
+          status: 'pending',
+          paymentMethod: 'MASTERCARD',
+          sender: { currency: 'EUR', amount: 50 },
+          recipient: { name: 'Jane Smith', currency: 'USD', amount: 55 },
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+        },
+      ];
+      setRecentTransfers(mockTransfers);
 
-      if (transferResponse.ok) {
-        const transferData = await transferResponse.json();
-        setRecentTransfers(transferData.data.transfers || []);
-      }
+      // Mock statistics
+      setStats({
+        totalTransactions: 15,
+        completedTransactions: 12,
+        totalAmount: 5420.50
+      });
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -318,7 +338,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
           <Card className="glass-dark border-blue-400/30">
             <CardContent className="p-6">
               <div className="flex items-center space-x-2">
@@ -327,7 +347,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">
-                    {recentTransfers.filter(t => t.status === 'completed').length}
+                    {stats?.completedTransactions || 0}
                   </p>
                   <p className="text-blue-200 text-sm">Completed Transfers</p>
                 </div>
@@ -343,7 +363,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">
-                    {recentTransfers.filter(t => ['pending', 'processing'].includes(t.status)).length}
+                    {recentTransfers.filter(t => ['pending', 'processing', 'paid'].includes(t.status)).length}
                   </p>
                   <p className="text-blue-200 text-sm">Pending Transfers</p>
                 </div>
@@ -358,8 +378,24 @@ export default function Dashboard() {
                   <ArrowUpRight className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{recentTransfers.length}</p>
+                  <p className="text-2xl font-bold text-white">{stats?.totalTransactions || 0}</p>
                   <p className="text-blue-200 text-sm">Total Transfers</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-dark border-blue-400/30">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center glow-effect">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">
+                    {stats?.totalAmount ? `$${stats.totalAmount.toFixed(2)}` : '$0.00'}
+                  </p>
+                  <p className="text-blue-200 text-sm">Total Transferred</p>
                 </div>
               </div>
             </CardContent>

@@ -39,6 +39,7 @@ export default function Login() {
     setError("");
 
     try {
+      // Call via Next.js API proxy
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -50,9 +51,13 @@ export default function Login() {
         }),
       });
 
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+
       const data = await response.json();
 
-      if (response.ok) {
+      if (data.success && data.tokens) {
         // Store tokens
         localStorage.setItem('accessToken', data.tokens.accessToken);
         localStorage.setItem('refreshToken', data.tokens.refreshToken);
@@ -61,10 +66,10 @@ export default function Login() {
         // Redirect to dashboard
         router.push('/dashboard');
       } else {
-        setError(data.error || 'Login failed');
+        setError(data.message || 'Login failed');
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      setError('Network error. Please check your connection and try again.');
       console.error('Login error:', error);
     } finally {
       setIsLoading(false);

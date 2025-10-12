@@ -7,14 +7,19 @@ import {
   TransferDetails,
   TransferHistory
 } from '@/lib/types/api';
+import AuthService from './authService';
 
-const API_BASE_URL = 'https://api-trustbridge.izcy.tech';
+// Use relative URL to go through Next.js (avoids CSP issues)
+const API_BASE_URL = '';
 
 class TransferService {
   private async makeRequest<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    const authHeaders = AuthService.getAuthHeaders();
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...options?.headers,
       },
       ...options,
@@ -78,6 +83,39 @@ class TransferService {
     const endpoint = queryString ? `/api/transfer/history?${queryString}` : '/api/transfer/history';
 
     return this.makeRequest<TransferHistory>(endpoint);
+  }
+
+  /**
+   * Get transaction history (new endpoint)
+   */
+  async getTransactionHistory(limit: number = 10): Promise<any> {
+    return this.makeRequest(`/api/transactions/history?limit=${limit}`);
+  }
+
+  /**
+   * Get transaction statistics
+   */
+  async getTransactionStats(): Promise<any> {
+    return this.makeRequest('/api/transactions/stats/summary');
+  }
+
+  /**
+   * Download invoice PDF for a transfer
+   */
+  async downloadInvoice(transferId: string): Promise<Blob> {
+    const authHeaders = AuthService.getAuthHeaders();
+
+    const response = await fetch(`${API_BASE_URL}/api/transfer/invoice/${transferId}`, {
+      headers: {
+        ...authHeaders,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to download invoice: ${response.status}`);
+    }
+
+    return response.blob();
   }
 }
 

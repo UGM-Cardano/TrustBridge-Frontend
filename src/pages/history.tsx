@@ -14,10 +14,12 @@ import {
   CheckCircle,
   XCircle,
   Send,
-  Eye
+  Eye,
+  ExternalLink
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import InvoiceDownloadButton from "@/components/InvoiceDownloadButton";
 
 interface Transfer {
   transferId: string;
@@ -73,28 +75,69 @@ export default function History() {
 
   const loadTransferHistory = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-      const params = new URLSearchParams({
-        userId: user.id,
-        limit: limit.toString(),
-        offset: '0',
-        ...(statusFilter !== 'all' && { status: statusFilter }),
-        ...(paymentMethodFilter !== 'all' && { paymentMethod: paymentMethodFilter }),
-      });
-
-      const response = await fetch(`/api/transfer/history?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      // Use mock data for now
+      const mockTransfers = [
+        {
+          transferId: 'TXN-1760104993148',
+          status: 'completed',
+          paymentMethod: 'WALLET',
+          sender: { currency: 'ADA', amount: 1.22 },
+          recipient: {
+            name: 'John Doe',
+            currency: 'IDR',
+            amount: 16607.59,
+            bank: 'BNI',
+            account: '828464'
+          },
+          blockchain: {
+            txHash: '319dd708d9e15dbeb8e00b88b14f984d23fb58caba058b0c82f48223485274c3',
+            cardanoScanUrl: 'https://preprod.cardanoscan.io/transaction/319dd708d9e15dbeb8e00b88b14f984d23fb58caba058b0c82f48223485274c3'
+          },
+          createdAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
         },
-      });
+        {
+          transferId: 'TXN-1760102445983',
+          status: 'completed',
+          paymentMethod: 'WALLET',
+          sender: { currency: 'USD', amount: 100 },
+          recipient: {
+            name: 'Jane Smith',
+            currency: 'IDR',
+            amount: 1550000,
+            bank: 'BCA',
+            account: '1234567'
+          },
+          blockchain: {
+            txHash: 'c1365960fd55c46d2d8c9fa0ba59ae5c1bba2090c0c88b8952381c2cbb752467',
+            cardanoScanUrl: 'https://preprod.cardanoscan.io/transaction/c1365960fd55c46d2d8c9fa0ba59ae5c1bba2090c0c88b8952381c2cbb752467'
+          },
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          completedAt: new Date(Date.now() - 86400000).toISOString(),
+        },
+        {
+          transferId: 'TXN-1760100000000',
+          status: 'pending',
+          paymentMethod: 'MASTERCARD',
+          sender: { currency: 'EUR', amount: 50 },
+          recipient: {
+            name: 'Bob Wilson',
+            currency: 'USD',
+            amount: 55.50,
+            bank: 'Chase',
+            account: '9876543'
+          },
+          blockchain: {
+            txHash: null,
+            cardanoScanUrl: null,
+          },
+          createdAt: new Date(Date.now() - 3600000).toISOString(),
+          completedAt: null,
+        }
+      ];
 
-      if (response.ok) {
-        const data: { success: boolean; data: TransferHistoryData } = await response.json();
-        setTransfers(data.data.transfers);
-        setHasMore(data.data.hasMore);
-      }
+      setTransfers(mockTransfers);
+      setHasMore(false);
     } catch (error) {
       console.error('Error loading transfer history:', error);
     } finally {
@@ -322,7 +365,31 @@ export default function History() {
                       )}
                     </div>
 
-                    <div className="ml-4">
+                    <div className="ml-4 flex items-center space-x-2">
+                      {/* Show invoice download for completed transfers */}
+                      {transfer.status === 'completed' && (
+                        <InvoiceDownloadButton
+                          transferId={transfer.transferId}
+                          variant="outline"
+                          size="sm"
+                        />
+                      )}
+
+                      {/* Show blockchain link if available */}
+                      {transfer.blockchain.cardanoScanUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(transfer.blockchain.cardanoScanUrl, '_blank');
+                          }}
+                          title="View on CardanoScan"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      )}
+
                       <Button
                         variant="outline"
                         size="sm"

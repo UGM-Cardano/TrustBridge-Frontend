@@ -18,12 +18,23 @@ import {
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
-// Currency data from backend
-const SENDER_CURRENCIES = [
+// Currency data - different for WALLET vs MASTERCARD
+const WALLET_CURRENCIES = [
+  { code: 'mockADA', name: 'Cardano (Mock)', symbol: '₳', flag: '⚡' },
+  { code: 'mockUSDC', name: 'USD Coin (Mock)', symbol: '$', flag: '🇺🇸' },
+  { code: 'mockEUROC', name: 'Euro Coin (Mock)', symbol: '€', flag: '🇪🇺' },
+  { code: 'mockCNHT', name: 'Chinese Yuan (Mock)', symbol: '¥', flag: '🇨🇳' },
+  { code: 'mockJPYC', name: 'Japanese Yen (Mock)', symbol: '¥', flag: '🇯🇵' },
+  { code: 'mockMXNT', name: 'Mexican Peso (Mock)', symbol: '$', flag: '🇲🇽' },
+];
+
+const FIAT_CURRENCIES = [
   { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸' },
   { code: 'EUR', name: 'Euro', symbol: '€', flag: '🇪🇺' },
   { code: 'GBP', name: 'British Pound', symbol: '£', flag: '🇬🇧' },
-  { code: 'ADA', name: 'Cardano', symbol: '₳', flag: '⚡' },
+  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥', flag: '🇨🇳' },
+  { code: 'JPY', name: 'Japanese Yen', symbol: '¥', flag: '🇯🇵' },
+  { code: 'MXN', name: 'Mexican Peso', symbol: '$', flag: '🇲🇽' },
 ];
 
 const RECIPIENT_CURRENCIES = [
@@ -61,10 +72,23 @@ export default function Send() {
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
 
   // Form data
-  const [senderCurrency, setSenderCurrency] = useState('USD');
+  const [senderCurrency, setSenderCurrency] = useState('mockADA');
   const [recipientCurrency, setRecipientCurrency] = useState('IDR');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('WALLET');
+
+  // Get available sender currencies based on payment method
+  const getSenderCurrencies = () => {
+    return paymentMethod === 'WALLET' ? WALLET_CURRENCIES : FIAT_CURRENCIES;
+  };
+
+  // Update sender currency when payment method changes
+  useEffect(() => {
+    const currencies = getSenderCurrencies();
+    if (!currencies.find(c => c.code === senderCurrency)) {
+      setSenderCurrency(paymentMethod === 'WALLET' ? 'mockADA' : 'USD');
+    }
+  }, [paymentMethod]);
 
   // Recipient data
   const [recipientName, setRecipientName] = useState('');
@@ -135,7 +159,7 @@ export default function Send() {
         body: JSON.stringify({
           paymentMethod,
           senderCurrency,
-          senderAmount: amount,
+          senderAmount: parseFloat(amount),
           recipientName,
           recipientCurrency,
           recipientBank,
@@ -152,7 +176,25 @@ export default function Send() {
 
       if (response.ok) {
         const data = await response.json();
-        router.push(`/transfer/${data.data.id}`);
+
+        // For WALLET method, redirect to wallet-transfer page with all details
+        if (paymentMethod === 'WALLET') {
+          const transferData = data.data;
+          const queryParams = new URLSearchParams({
+            transferId: transferData.id,
+            recipientName: recipientName,
+            recipientCurrency: recipientCurrency,
+            recipientBank: recipientBank,
+            recipientAccount: recipientAccount,
+            senderCurrency: senderCurrency,
+            amount: amount,
+          });
+
+          router.push(`/wallet-transfer?${queryParams.toString()}`);
+        } else {
+          // For MASTERCARD, go to transfer status page
+          router.push(`/transfer/${data.data.id}`);
+        }
       }
     } catch (error) {
       console.error('Transfer initiation error:', error);
@@ -265,7 +307,7 @@ export default function Send() {
                     onChange={(e) => setSenderCurrency(e.target.value)}
                     className="w-full px-3 py-3 glass border-blue-400/30 rounded-lg focus:ring-2 focus:ring-blue-500 text-white bg-transparent"
                   >
-                    {SENDER_CURRENCIES.map((currency) => (
+                    {getSenderCurrencies().map((currency) => (
                       <option key={currency.code} value={currency.code}>
                         {currency.flag} {currency.code} - {currency.name}
                       </option>
