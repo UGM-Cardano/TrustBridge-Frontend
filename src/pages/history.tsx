@@ -128,11 +128,11 @@ export default function History() {
             account: '9876543'
           },
           blockchain: {
-            txHash: null,
-            cardanoScanUrl: null,
+            txHash: '',
+            cardanoScanUrl: '',
           },
           createdAt: new Date(Date.now() - 3600000).toISOString(),
-          completedAt: null,
+          completedAt: undefined,
         }
       ];
 

@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CreditCard, ArrowLeft, MessageCircle, Phone, Globe } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { apiUrl } from "@/lib/config";
+import AuthService from "@/lib/api/authService";
 
 // Country codes for WhatsApp
 const COUNTRY_CODES = [
@@ -39,30 +41,10 @@ export default function Login() {
     setError("");
 
     try {
-      // Call via Next.js API proxy
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          whatsappNumber: whatsappNumber,
-          countryCode: selectedCountryCode,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data = await response.json();
+      // Use the auth service which has fallback to mock data
+      const data = await AuthService.login(whatsappNumber, selectedCountryCode);
 
       if (data.success && data.tokens) {
-        // Store tokens
-        localStorage.setItem('accessToken', data.tokens.accessToken);
-        localStorage.setItem('refreshToken', data.tokens.refreshToken);
-        localStorage.setItem('user', JSON.stringify(data.user));
-
         // Redirect to dashboard
         router.push('/dashboard');
       } else {
@@ -136,7 +118,7 @@ export default function Login() {
                     className="w-full px-3 py-2 glass border-blue-400/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-400 text-white bg-transparent"
                   >
                     {COUNTRY_CODES.map((country) => (
-                      <option key={country.code} value={country.code}>
+                      <option key={country.code} value={country.code} className="bg-gray-800 text-white">
                         {country.flag} {country.code} ({country.country})
                       </option>
                     ))}

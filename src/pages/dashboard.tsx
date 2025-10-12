@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { transferService } from "@/lib/api/transferService";
+import { DemoModeIndicator, DemoModeBanner } from "@/components/DemoModeIndicator";
 
 interface User {
   id: string;
@@ -62,6 +64,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<TransactionStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showBalance, setShowBalance] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
     // Check authentication
@@ -79,7 +82,54 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
-      // Use mock data for now
+      // Load backend info and wallet balance
+      const backendInfoResponse = await transferService.getBackendInfo();
+      if (backendInfoResponse.success && backendInfoResponse.data) {
+        setBalance(backendInfoResponse.data.balance);
+      } else {
+        // Fallback to mock data
+        setBalance({
+          ada: 100.5,
+          lovelace: '100500000',
+          assets: [
+            { unit: 'mockADA', quantity: '1000000' },
+            { unit: 'mockUSDC', quantity: '500000' },
+          ]
+        });
+      }
+
+      // Load recent transfers
+      const historyResponse = await transferService.getTransferHistory(5, 0);
+      if (historyResponse.success && historyResponse.data) {
+        const transfers = historyResponse.data.transfers.map(transfer => ({
+          transferId: transfer.transferId,
+          status: transfer.status.toLowerCase(),
+          paymentMethod: transfer.paymentMethod,
+          sender: transfer.sender,
+          recipient: transfer.recipient,
+          createdAt: transfer.createdAt
+        }));
+        setRecentTransfers(transfers);
+      }
+
+      // Load transaction statistics
+      const statsResponse = await transferService.getTransactionStats();
+      if (statsResponse.success && statsResponse.data) {
+        setStats({
+          totalTransactions: statsResponse.data.totalTransactions,
+          completedTransactions: statsResponse.data.completedTransactions,
+          totalAmount: statsResponse.data.totalAmount
+        });
+      }
+
+      // Check if we're in demo mode
+      setIsDemoMode(transferService.isDemoMode());
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      setIsDemoMode(true);
+
+      // Fallback to mock data
       setBalance({
         ada: 100.5,
         lovelace: '100500000',
@@ -89,8 +139,7 @@ export default function Dashboard() {
         ]
       });
 
-      // Mock recent transfers
-      const mockTransfers = [
+      setRecentTransfers([
         {
           transferId: 'TXN-123456789',
           status: 'completed',
@@ -107,18 +156,13 @@ export default function Dashboard() {
           recipient: { name: 'Jane Smith', currency: 'USD', amount: 55 },
           createdAt: new Date(Date.now() - 86400000).toISOString(),
         },
-      ];
-      setRecentTransfers(mockTransfers);
+      ]);
 
-      // Mock statistics
       setStats({
         totalTransactions: 15,
         completedTransactions: 12,
         totalAmount: 5420.50
       });
-
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -174,6 +218,7 @@ export default function Dashboard() {
               <span className="text-2xl font-bold text-glow">TrustBridge</span>
             </div>
             <div className="flex items-center space-x-4">
+              <DemoModeIndicator isDemo={isDemoMode} />
               <div className="flex items-center space-x-2 text-blue-300">
                 <MessageCircle className="w-4 h-4" />
                 <span className="text-sm">{user?.whatsappNumber}</span>
@@ -197,6 +242,9 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-white">Welcome back!</h1>
           <p className="text-blue-200 mt-2">Manage your cross-border payments and track transfers</p>
         </div>
+
+        {/* Demo Mode Banner */}
+        <DemoModeBanner isDemo={isDemoMode} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Wallet Balance */}

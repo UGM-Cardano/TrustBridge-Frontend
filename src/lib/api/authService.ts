@@ -2,6 +2,7 @@
  * Authentication Service
  * Centralized auth token management for API calls
  */
+import { mockApiService } from '@/lib/mock/mockApiService';
 
 class AuthService {
   private static readonly TOKEN_KEY = 'accessToken';
@@ -75,6 +76,48 @@ class AuthService {
   static getAuthHeaders(): Record<string, string> {
     const token = this.getAccessToken();
     return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
+
+  /**
+   * Login with fallback to mock service
+   */
+  static async login(whatsappNumber: string, countryCode: string): Promise<any> {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          whatsappNumber,
+          countryCode,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+
+      const data = await response.json();
+
+      // Handle backend response format: { message: "Login successful", user: {...}, tokens: {...} }
+      if (data.tokens && data.user) {
+        this.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
+        this.setUser(data.user);
+        // Return in expected format for frontend compatibility
+        return {
+          success: true,
+          tokens: data.tokens,
+          user: data.user,
+          message: data.message
+        };
+      } else {
+        throw new Error(data.error || data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.warn('API login failed, using mock login:', error);
+      return mockApiService.login(whatsappNumber, countryCode);
+    }
   }
 }
 
