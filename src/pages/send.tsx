@@ -20,12 +20,13 @@ import { useState, useEffect } from "react";
 
 // Currency data - different for WALLET vs MASTERCARD
 const WALLET_CURRENCIES = [
-  { code: 'mockADA', name: 'Cardano (Mock)', symbol: '₳', flag: '⚡' },
-  { code: 'mockUSDC', name: 'USD Coin (Mock)', symbol: '$', flag: '🇺🇸' },
-  { code: 'mockEUROC', name: 'Euro Coin (Mock)', symbol: '€', flag: '🇪🇺' },
-  { code: 'mockCNHT', name: 'Chinese Yuan (Mock)', symbol: '¥', flag: '🇨🇳' },
-  { code: 'mockJPYC', name: 'Japanese Yen (Mock)', symbol: '¥', flag: '🇯🇵' },
-  { code: 'mockMXNT', name: 'Mexican Peso (Mock)', symbol: '$', flag: '🇲🇽' },
+  { code: 'mockADA', name: 'Cardano ADA', symbol: '₳', flag: '⚡' },
+  { code: 'mockUSDC', name: 'USD Coin', symbol: '$', flag: '🇺🇸' },
+  { code: 'mockEUROC', name: 'Euro Coin', symbol: '€', flag: '🇪🇺' },
+  { code: 'mockCNHT', name: 'Chinese Yuan Token', symbol: '¥', flag: '🇨🇳' },
+  { code: 'mockJPYC', name: 'Japanese Yen Coin', symbol: '¥', flag: '🇯🇵' },
+  { code: 'mockMXNT', name: 'Mexican Peso Token', symbol: '$', flag: '🇲🇽' },
+  { code: 'mockIDRX', name: 'Indonesian Rupiah Token', symbol: 'Rp', flag: '🇮🇩' },
 ];
 
 const FIAT_CURRENCIES = [
@@ -114,7 +115,7 @@ export default function Send() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/transfer/calculate', {
+      const response = await fetch('http://localhost:5000/api/transfer/calculate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +151,7 @@ export default function Send() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/transfer/initiate', {
+      const response = await fetch('http://localhost:5000/api/transfer/initiate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

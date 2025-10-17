@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Send, User, Building, CreditCard } from 'lucide-react';
-import { transferService } from '@/lib/api/transferService';
+import TransferService from '@/lib/api/transferService';
 import { TransferCalculation, TransferInitiation, TransferRequest } from '@/lib/types/api';
 
 interface TransferFormProps {
@@ -68,7 +68,7 @@ export default function TransferForm({
         recipientAccount: formData.recipientAccount
       };
 
-      const response = await transferService.initiateTransfer(transferRequest);
+      const response = await TransferService.initiateTransfer(transferRequest);
 
       if (response.success) {
         onTransferInitiated?.(response.data);

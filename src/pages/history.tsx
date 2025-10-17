@@ -20,6 +20,7 @@ import {
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import InvoiceDownloadButton from "@/components/InvoiceDownloadButton";
+import TransferService from "@/lib/api/transferService";
 
 interface Transfer {
   transferId: string;
@@ -75,71 +76,31 @@ export default function History() {
 
   const loadTransferHistory = async () => {
     try {
-      // Use mock data for now
-      const mockTransfers = [
-        {
-          transferId: 'TXN-1760104993148',
-          status: 'completed',
-          paymentMethod: 'WALLET',
-          sender: { currency: 'ADA', amount: 1.22 },
-          recipient: {
-            name: 'John Doe',
-            currency: 'IDR',
-            amount: 16607.59,
-            bank: 'BNI',
-            account: '828464'
-          },
-          blockchain: {
-            txHash: '319dd708d9e15dbeb8e00b88b14f984d23fb58caba058b0c82f48223485274c3',
-            cardanoScanUrl: 'https://preprod.cardanoscan.io/transaction/319dd708d9e15dbeb8e00b88b14f984d23fb58caba058b0c82f48223485274c3'
-          },
-          createdAt: new Date().toISOString(),
-          completedAt: new Date().toISOString(),
-        },
-        {
-          transferId: 'TXN-1760102445983',
-          status: 'completed',
-          paymentMethod: 'WALLET',
-          sender: { currency: 'USD', amount: 100 },
-          recipient: {
-            name: 'Jane Smith',
-            currency: 'IDR',
-            amount: 1550000,
-            bank: 'BCA',
-            account: '1234567'
-          },
-          blockchain: {
-            txHash: 'c1365960fd55c46d2d8c9fa0ba59ae5c1bba2090c0c88b8952381c2cbb752467',
-            cardanoScanUrl: 'https://preprod.cardanoscan.io/transaction/c1365960fd55c46d2d8c9fa0ba59ae5c1bba2090c0c88b8952381c2cbb752467'
-          },
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          completedAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          transferId: 'TXN-1760100000000',
-          status: 'pending',
-          paymentMethod: 'MASTERCARD',
-          sender: { currency: 'EUR', amount: 50 },
-          recipient: {
-            name: 'Bob Wilson',
-            currency: 'USD',
-            amount: 55.50,
-            bank: 'Chase',
-            account: '9876543'
-          },
-          blockchain: {
-            txHash: '',
-            cardanoScanUrl: '',
-          },
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-          completedAt: undefined,
-        }
-      ];
+      setIsLoading(true);
 
-      setTransfers(mockTransfers);
-      setHasMore(false);
+      // Use real API to fetch transfer history
+      const response = await TransferService.getHistory({
+        limit,
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        paymentMethod: paymentMethodFilter === 'all' ? undefined : paymentMethodFilter,
+      });
+
+      if (response.success) {
+        // Transform backend data to frontend format
+        const transformedTransfers = response.data.transfers.map(TransferService.transformTransferData);
+        setTransfers(transformedTransfers);
+        setHasMore(response.data.hasMore);
+      } else {
+        throw new Error(response.error || 'Failed to load transfer history');
+      }
     } catch (error) {
       console.error('Error loading transfer history:', error);
+
+      // Fallback to empty state or show error message
+      setTransfers([]);
+      setHasMore(false);
+
+      // You might want to show a toast or error message here
     } finally {
       setIsLoading(false);
     }

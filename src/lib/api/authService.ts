@@ -79,32 +79,35 @@ class AuthService {
   }
 
   /**
-   * Login with fallback to mock service
+   * Login with backend API
    */
   static async login(whatsappNumber: string, countryCode: string): Promise<any> {
     try {
-      const response = await fetch('/api/auth/login', {
+      // Format WhatsApp number properly
+      const fullNumber = countryCode + whatsappNumber;
+
+      const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          whatsappNumber,
+          whatsappNumber: fullNumber,
           countryCode,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
       }
 
       const data = await response.json();
 
-      // Handle backend response format: { message: "Login successful", user: {...}, tokens: {...} }
-      if (data.tokens && data.user) {
+      // Handle backend response format: { success: true, message: "Login successful", user: {...}, tokens: {...} }
+      if (data.success && data.tokens && data.user) {
         this.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
         this.setUser(data.user);
-        // Return in expected format for frontend compatibility
         return {
           success: true,
           tokens: data.tokens,
@@ -115,7 +118,8 @@ class AuthService {
         throw new Error(data.error || data.message || 'Login failed');
       }
     } catch (error) {
-      console.warn('API login failed, using mock login:', error);
+      console.error('Backend login failed:', error);
+      // Use mock data as fallback for development
       return mockApiService.login(whatsappNumber, countryCode);
     }
   }

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { transferService } from "@/lib/api/transferService";
+import TransferService from "@/lib/api/transferService";
 
 interface InvoiceDownloadButtonProps {
   transferId: string;
@@ -25,7 +25,7 @@ export default function InvoiceDownloadButton({
       setIsDownloading(true);
 
       // Download PDF blob from backend
-      const blob = await transferService.downloadInvoice(transferId);
+      const blob = await TransferService.downloadInvoice(transferId);
 
       // Create download link
       const url = window.URL.createObjectURL(blob);

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, ArrowRight, DollarSign, CreditCard } from 'lucide-react';
-import { transferService } from '@/lib/api/transferService';
+import TransferService from '@/lib/api/transferService';
 import { exchangeService } from '@/lib/api/exchangeService';
 import { Currency, TransferCalculation } from '@/lib/types/api';
 
@@ -65,7 +65,7 @@ export default function TransferCalculator({
       setLoading(true);
       setError(null);
 
-      const response = await transferService.calculateTransfer(
+      const response = await TransferService.calculateTransfer(
         formData.paymentMethod,
         formData.senderCurrency,
         parseFloat(formData.senderAmount),

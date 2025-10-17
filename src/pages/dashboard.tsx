@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { transferService } from "@/lib/api/transferService";
+import TransferService from "@/lib/api/transferService";
 import { DemoModeIndicator, DemoModeBanner } from "@/components/DemoModeIndicator";
 
 interface User {
@@ -82,24 +82,18 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
-      // Load backend info and wallet balance
-      const backendInfoResponse = await transferService.getBackendInfo();
-      if (backendInfoResponse.success && backendInfoResponse.data) {
-        setBalance(backendInfoResponse.data.balance);
-      } else {
-        // Fallback to mock data
-        setBalance({
-          ada: 100.5,
-          lovelace: '100500000',
-          assets: [
-            { unit: 'mockADA', quantity: '1000000' },
-            { unit: 'mockUSDC', quantity: '500000' },
-          ]
-        });
-      }
+      // Set mock wallet balance (as we don't have actual wallet connection here)
+      setBalance({
+        ada: 100.5,
+        lovelace: '100500000',
+        assets: [
+          { unit: 'mockADA', quantity: '1000000' },
+          { unit: 'mockUSDC', quantity: '500000' },
+        ]
+      });
 
-      // Load recent transfers
-      const historyResponse = await transferService.getTransferHistory(5, 0);
+      // Load recent transfers from real API
+      const historyResponse = await TransferService.getHistory({ limit: 5 });
       if (historyResponse.success && historyResponse.data) {
         const transfers = historyResponse.data.transfers.map(transfer => ({
           transferId: transfer.transferId,
@@ -112,18 +106,16 @@ export default function Dashboard() {
         setRecentTransfers(transfers);
       }
 
-      // Load transaction statistics
-      const statsResponse = await transferService.getTransactionStats();
-      if (statsResponse.success && statsResponse.data) {
-        setStats({
-          totalTransactions: statsResponse.data.totalTransactions,
-          completedTransactions: statsResponse.data.completedTransactions,
-          totalAmount: statsResponse.data.totalAmount
-        });
-      }
+      // Load user statistics from real API
+      const userStats = await TransferService.getUserStats();
+      setStats({
+        totalTransactions: userStats.totalTransfers,
+        completedTransactions: userStats.completedTransfers,
+        totalAmount: userStats.totalVolume
+      });
 
-      // Check if we're in demo mode
-      setIsDemoMode(transferService.isDemoMode());
+      // We're using real data, so not in demo mode
+      setIsDemoMode(false);
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);

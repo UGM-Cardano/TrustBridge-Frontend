@@ -1,209 +1,272 @@
-import {
-  ApiResponse,
-  TransferCalculation,
-  TransferRequest,
-  TransferInitiation,
-  TransferStatus,
-  TransferDetails,
-  TransferHistory
-} from '@/lib/types/api';
+/**
+ * Transfer Service
+ * API client for transfer-related operations
+ */
 import AuthService from './authService';
-import { mockApiService } from '@/lib/mock/mockApiService';
 
-// Use relative URL to go through Next.js (avoids CSP issues)
-const API_BASE_URL = '';
+interface TransferHistoryResponse {
+  success: boolean;
+  data: {
+    transfers: any[];
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+  error?: string;
+}
+
+interface TransferDetailsResponse {
+  success: boolean;
+  data: any;
+  error?: string;
+}
 
 class TransferService {
-  private isDemo = false;
+  private static readonly BASE_URL = 'http://localhost:5000/api/transfer';
 
-  private async makeRequest<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+  /**
+   * Get authenticated headers
+   */
+  private static getHeaders(): Record<string, string> {
+    return {
+      'Content-Type': 'application/json',
+      ...AuthService.getAuthHeaders(),
+    };
+  }
+
+  /**
+   * Get transfer history for authenticated user
+   */
+  static async getHistory(params: {
+    limit?: number;
+    offset?: number;
+    status?: string;
+    paymentMethod?: string;
+  } = {}): Promise<TransferHistoryResponse> {
     try {
-      const authHeaders = AuthService.getAuthHeaders();
+      const user = AuthService.getUser();
+      if (!user || !user.whatsappNumber) {
+        throw new Error('User not authenticated or WhatsApp number not available');
+      }
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-          ...options?.headers,
-        },
-        ...options,
+      const queryParams = new URLSearchParams({
+        whatsappNumber: user.whatsappNumber,
+        limit: (params.limit || 20).toString(),
+        offset: (params.offset || 0).toString(),
+        ...(params.status && { status: params.status }),
+        ...(params.paymentMethod && { paymentMethod: params.paymentMethod }),
+      });
+
+      const response = await fetch(`${this.BASE_URL}/history?${queryParams}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch transfer history');
       }
 
       const data = await response.json();
-      this.isDemo = false;
       return data;
     } catch (error) {
-      console.warn(`API request failed for ${endpoint}, falling back to mock data:`, error);
-      this.isDemo = true;
-      throw error; // Let individual methods handle the fallback
-    }
-  }
-
-  isDemoMode(): boolean {
-    return this.isDemo;
-  }
-
-  async calculateTransfer(
-    paymentMethod: string,
-    senderCurrency: string,
-    senderAmount: number,
-    recipientCurrency: string
-  ): Promise<ApiResponse<TransferCalculation>> {
-    try {
-      return await this.makeRequest<TransferCalculation>('/api/transfer/calculate', {
-        method: 'POST',
-        body: JSON.stringify({
-          paymentMethod,
-          senderCurrency,
-          senderAmount,
-          recipientCurrency,
-        }),
-      });
-    } catch (error) {
-      return mockApiService.calculateTransfer(paymentMethod, senderCurrency, senderAmount, recipientCurrency);
-    }
-  }
-
-  async initiateTransfer(transferData: TransferRequest): Promise<ApiResponse<TransferInitiation>> {
-    try {
-      return await this.makeRequest<TransferInitiation>('/api/transfer/initiate', {
-        method: 'POST',
-        body: JSON.stringify(transferData),
-      });
-    } catch (error) {
-      return mockApiService.initiateTransfer(transferData);
-    }
-  }
-
-  async confirmPayment(transferId: string, txHash: string): Promise<ApiResponse<{ message: string }>> {
-    try {
-      return await this.makeRequest<{ message: string }>('/api/transfer/confirm', {
-        method: 'POST',
-        body: JSON.stringify({
-          transferId,
-          txHash,
-        }),
-      });
-    } catch (error) {
-      return mockApiService.confirmPayment(transferId, txHash);
-    }
-  }
-
-  async getTransferStatus(transferId: string): Promise<ApiResponse<TransferStatus>> {
-    try {
-      return await this.makeRequest<TransferStatus>(`/api/transfer/status/${transferId}`);
-    } catch (error) {
-      // Mock status response
-      return {
-        success: true,
-        data: {
-          transferId,
-          status: 'INITIATED' as const,
-          message: 'Transfer is being processed',
-          timestamp: new Date().toISOString()
-        }
-      };
-    }
-  }
-
-  async getTransferDetails(transferId: string): Promise<ApiResponse<TransferDetails>> {
-    try {
-      return await this.makeRequest<TransferDetails>(`/api/transfer/details/${transferId}`);
-    } catch (error) {
-      return mockApiService.getTransferDetails(transferId);
-    }
-  }
-
-  async getTransferHistory(limit?: number, offset?: number): Promise<ApiResponse<TransferHistory>> {
-    try {
-      const params = new URLSearchParams();
-      if (limit) params.append('limit', limit.toString());
-      if (offset) params.append('offset', offset.toString());
-
-      const queryString = params.toString();
-      const endpoint = queryString ? `/api/transfer/history?${queryString}` : '/api/transfer/history';
-
-      return await this.makeRequest<TransferHistory>(endpoint);
-    } catch (error) {
-      return mockApiService.getTransferHistory(limit || 5, offset || 0);
+      console.error('Transfer history fetch failed:', error);
+      throw error;
     }
   }
 
   /**
-   * Get transaction history (new endpoint)
+   * Get transfer details by ID
    */
-  async getTransactionHistory(limit: number = 10): Promise<any> {
+  static async getDetails(transferId: string): Promise<TransferDetailsResponse> {
     try {
-      return await this.makeRequest(`/api/transactions/history?limit=${limit}`);
+      const response = await fetch(`${this.BASE_URL}/details/${transferId}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch transfer details');
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
-      return mockApiService.getTransactionHistory(limit);
+      console.error('Transfer details fetch failed:', error);
+      throw error;
     }
   }
 
   /**
-   * Get transaction statistics
+   * Get transfer status by ID
    */
-  async getTransactionStats(): Promise<any> {
+  static async getStatus(transferId: string): Promise<any> {
     try {
-      return await this.makeRequest('/api/transactions/stats/summary');
+      const response = await fetch(`${this.BASE_URL}/status/${transferId}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch transfer status');
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
-      return mockApiService.getTransactionStats();
+      console.error('Transfer status fetch failed:', error);
+      throw error;
     }
   }
 
   /**
-   * Download invoice PDF for a transfer
+   * Download invoice for transfer
    */
-  async downloadInvoice(transferId: string): Promise<Blob> {
+  static async downloadInvoice(transferId: string): Promise<Blob> {
     try {
-      const authHeaders = AuthService.getAuthHeaders();
-
-      const response = await fetch(`${API_BASE_URL}/api/transfer/invoice/${transferId}`, {
+      const response = await fetch(`${this.BASE_URL}/invoice/${transferId}`, {
+        method: 'GET',
         headers: {
-          ...authHeaders,
+          ...AuthService.getAuthHeaders(),
         },
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to download invoice: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to download invoice');
       }
 
-      return response.blob();
+      const blob = await response.blob();
+      return blob;
     } catch (error) {
-      return mockApiService.downloadInvoice(transferId);
+      console.error('Invoice download failed:', error);
+      throw error;
     }
   }
 
-  // Backend info endpoint
-  async getBackendInfo(): Promise<any> {
+  /**
+   * Transform backend transfer data to frontend format
+   */
+  static transformTransferData(backendTransfer: any): any {
+    return {
+      transferId: backendTransfer.transferId,
+      status: backendTransfer.status,
+      paymentMethod: backendTransfer.paymentMethod,
+      sender: {
+        currency: backendTransfer.sender.currency,
+        amount: backendTransfer.sender.amount,
+      },
+      recipient: {
+        name: backendTransfer.recipient.name,
+        currency: backendTransfer.recipient.currency,
+        amount: backendTransfer.recipient.amount,
+        bank: backendTransfer.recipient.bank,
+        account: backendTransfer.recipient.account,
+      },
+      blockchain: {
+        txHash: backendTransfer.blockchain?.txHash || '',
+        cardanoScanUrl: backendTransfer.blockchain?.cardanoScanUrl || '',
+      },
+      createdAt: backendTransfer.createdAt,
+      completedAt: backendTransfer.completedAt,
+    };
+  }
+
+  /**
+   * Calculate transfer amounts without initiating
+   */
+  static async calculateTransfer(
+    paymentMethod: string,
+    senderCurrency: string,
+    amount: number,
+    recipientCurrency: string
+  ): Promise<any> {
     try {
-      return await this.makeRequest('/api/cardano/backend-info');
+      const response = await fetch(`${this.BASE_URL}/calculate`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          paymentMethod,
+          senderCurrency,
+          amount,
+          recipientCurrency,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to calculate transfer');
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
-      return mockApiService.getBackendInfo();
+      console.error('Transfer calculation failed:', error);
+      throw error;
     }
   }
 
-  // Exchange rates endpoint
-  async getExchangeRates(): Promise<any> {
+  /**
+   * Initiate a new transfer
+   */
+  static async initiateTransfer(transferRequest: any): Promise<any> {
     try {
-      return await this.makeRequest('/api/exchange/rates');
+      const response = await fetch(`${this.BASE_URL}/initiate`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(transferRequest),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to initiate transfer');
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
-      return mockApiService.getExchangeRates();
+      console.error('Transfer initiation failed:', error);
+      throw error;
     }
   }
 
-  // Cardano tokens endpoint
-  async getCardanoTokens(): Promise<any> {
+  /**
+   * Get user statistics
+   */
+  static async getUserStats(): Promise<any> {
     try {
-      return await this.makeRequest('/api/cardano/tokens');
+      const historyResponse = await this.getHistory({ limit: 1000 });
+
+      if (!historyResponse.success) {
+        throw new Error('Failed to fetch user statistics');
+      }
+
+      const transfers = historyResponse.data.transfers;
+
+      const stats = {
+        totalTransfers: transfers.length,
+        completedTransfers: transfers.filter(t => t.status === 'completed').length,
+        pendingTransfers: transfers.filter(t => ['pending', 'processing', 'paid'].includes(t.status)).length,
+        failedTransfers: transfers.filter(t => ['failed', 'cancelled'].includes(t.status)).length,
+        totalVolume: transfers
+          .filter(t => t.status === 'completed')
+          .reduce((sum, t) => sum + (t.recipient?.amount || 0), 0),
+        averageAmount: 0,
+      };
+
+      if (stats.completedTransfers > 0) {
+        stats.averageAmount = stats.totalVolume / stats.completedTransfers;
+      }
+
+      return stats;
     } catch (error) {
-      return mockApiService.getCardanoTokens();
+      console.error('User stats fetch failed:', error);
+      throw error;
     }
   }
 }
 
-export const transferService = new TransferService();
+export default TransferService;
